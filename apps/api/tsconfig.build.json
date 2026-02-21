@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "prisma"],
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "@orderbridge/shared": ["../../packages/shared/dist"]
+    }
+  },
+  "include": ["src/**/*"]
+}
