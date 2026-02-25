@@ -7,6 +7,120 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                      String                   @id @default(uuid())
+  email                   String                   @unique
+  passwordHash            String                   @map("password_hash")
+  fullName                String                   @map("full_name")
+  role                    UserRole                 @default(USER)
+  emailVerifiedAt         DateTime?                @map("email_verified_at")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  emailVerificationTokens EmailVerificationToken[]
+  ordersAsBuyer           Order[]                  @relation("BuyerOrders")
+  passwordResetTokens     PasswordResetToken[]
+  pushSubscriptions       PushSubscription[]
+  refreshTokens           RefreshToken[]
+  sellerProfile           SellerProfile?
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SellerProfile {
+  userId       String         @id @map("user_id")
+  displayName  String         @map("display_name")
+  bio          String?
+  categories   String[]       @default([])
+  locationText String?        @map("location_text")
+  avatarUrl    String?        @map("avatar_url")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  menu         MenuItem[]
+  orders       Order[]        @relation("SellerOrders")
+  media        ProfileMedia[]
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MenuItem {
+  id          String        @id @default(uuid())
+  sellerId    String        @map("seller_id")
+  title       String
+  description String?
+  price       Decimal       @db.Decimal(10, 2)
+  imageUrl    String?       @map("image_url")
+  isAvailable Boolean       @default(true) @map("is_available")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  seller      SellerProfile @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
+  orders      Order[]
+}
+
+model ProfileMedia {
+  id           String           @id @default(uuid())
+  sellerId     String           @map("seller_id")
+  type         ProfileMediaType
+  url          String
+  thumbnailUrl String?          @map("thumbnail_url")
+  title        String?
+  caption      String?
+  sortOrder    Int              @default(0) @map("sort_order")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  seller       SellerProfile    @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
+}
+
+model Order {
+  id           String        @id @default(uuid())
+  buyerId      String        @map("buyer_id")
+  sellerId     String        @map("seller_id")
+  menuItemId   String        @map("menu_item_id")
+  status       OrderStatus   @default(PENDING)
+  note         String?
+  scheduledFor DateTime?     @map("scheduled_for")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  buyer        User          @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
+  menuItem     MenuItem      @relation(fields: [menuItemId], references: [id])
+  seller       SellerProfile @relation("SellerOrders", fields: [sellerId], references: [userId], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, endpoint])
+}
+
 enum UserRole {
   USER
   ADMIN
@@ -23,127 +137,4 @@ enum OrderStatus {
   REJECTED
   COMPLETED
   CANCELLED
-}
-
-model User {
-  id              String    @id @default(uuid())
-  email           String    @unique
-  passwordHash    String    @map("password_hash")
-  fullName        String    @map("full_name")
-  role            UserRole  @default(USER)
-  emailVerifiedAt DateTime? @map("email_verified_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-
-  refreshTokens           RefreshToken[]
-  emailVerificationTokens EmailVerificationToken[]
-  passwordResetTokens     PasswordResetToken[]
-  sellerProfile           SellerProfile?
-  ordersAsBuyer           Order[]         @relation("BuyerOrders")
-  pushSubscriptions       PushSubscription[]
-}
-
-model RefreshToken {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  tokenHash String   @map("token_hash")
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model EmailVerificationToken {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  token     String   @unique
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model PasswordResetToken {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  token     String   @unique
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model SellerProfile {
-  userId      String   @id @map("user_id")
-  displayName String   @map("display_name")
-  bio         String?
-  categories  String[] @default([])
-  locationText String? @map("location_text")
-  avatarUrl   String?  @map("avatar_url")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  menu   MenuItem[]
-  media  ProfileMedia[]
-  orders Order[]        @relation("SellerOrders")
-}
-
-model MenuItem {
-  id          String   @id @default(uuid())
-  sellerId    String   @map("seller_id")
-  title       String
-  description String?
-  price       Decimal  @db.Decimal(10, 2)
-  imageUrl    String?  @map("image_url")
-  isAvailable Boolean  @default(true) @map("is_available")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  seller  SellerProfile @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
-  orders  Order[]
-}
-
-model ProfileMedia {
-  id          String           @id @default(uuid())
-  sellerId    String           @map("seller_id")
-  type        ProfileMediaType
-  url         String
-  thumbnailUrl String?         @map("thumbnail_url")
-  title       String?
-  caption     String?
-  sortOrder   Int              @default(0) @map("sort_order")
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
-
-  seller SellerProfile @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
-}
-
-model Order {
-  id          String      @id @default(uuid())
-  buyerId     String      @map("buyer_id")
-  sellerId    String      @map("seller_id")
-  menuItemId  String      @map("menu_item_id")
-  status      OrderStatus @default(PENDING)
-  note        String?
-  scheduledFor DateTime?  @map("scheduled_for")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-
-  buyer    User     @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
-  seller   SellerProfile @relation("SellerOrders", fields: [sellerId], references: [userId], onDelete: Cascade)
-  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
-}
-
-model PushSubscription {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  endpoint  String
-  p256dh    String
-  auth      String
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, endpoint])
 }

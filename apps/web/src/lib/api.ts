@@ -40,8 +40,12 @@ export async function apiFetch<T>(
   };
   if (token) (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
 
-  let res = await fetch(`${API_BASE}${path}`, { ...options, credentials: 'include', headers });
-
+  console.log('API URL =>', `${API_BASE}${path}`);
+  
+  const url = `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
+  let res = await fetch(url, { ...options, credentials: 'include', headers });
+  
+  console.log('API URL =>', `${API_BASE}${path}`);
   if (res.status === 401) {
     const newToken = await refreshAccessToken();
     if (newToken) {
