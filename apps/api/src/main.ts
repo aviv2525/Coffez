@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -5,9 +6,19 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import cookieParser from 'cookie-parser';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+
+import { HealthController } from './health.controller';
+console.log("RUNNER:", process.execArgv);
+console.log("TS_NODE:", process.env.TS_NODE_PROJECT, process.env.TS_NODE_TRANSPILE_ONLY);
+console.log(
+  'design:paramtypes HealthController =',
+  Reflect.getMetadata('design:paramtypes', HealthController),
+);
+console.log("DATABASE_URL exists?", !!process.env.DATABASE_URL);
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
