@@ -7,8 +7,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushService } from '../push/push.service';
-import type { CreateOrderInput, OrderStatus } from '@orderbridge/shared';
-import { OrderStatus as PrismaOrderStatus } from '@prisma/client';
+import type { CreateOrderInput } from '@orderbridge/shared';
+import { OrderStatus as PrismaOrderStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -23,26 +23,33 @@ export class OrdersService {
       where: { id: input.menuItemId },
       include: { seller: { include: { user: true } } },
     });
+
     if (!menuItem) throw new NotFoundException('Menu item not found');
-    if (menuItem.sellerId !== input.sellerId)
+    if (menuItem.sellerId !== input.sellerId) {
       throw new BadRequestException('Menu item does not belong to this seller');
-    if (!menuItem.isAvailable) throw new BadRequestException('Menu item is not available');
+    }
+    if (!menuItem.isAvailable) {
+      throw new BadRequestException('Menu item is not available');
+    }
 
     const sellerUser = await this.prisma.user.findUnique({
       where: { id: menuItem.sellerId },
     });
+
     const buyer = await this.prisma.user.findUnique({
       where: { id: buyerId },
     });
+
     if (!sellerUser || !buyer) throw new NotFoundException('User not found');
 
     const scheduledFor = input.scheduledFor ? new Date(input.scheduledFor) : null;
+
     const order = await this.prisma.order.create({
       data: {
         buyerId,
         sellerId: input.sellerId,
         menuItemId: input.menuItemId,
-        status: 'PENDING',
+        status: PrismaOrderStatus.PENDING,
         note: input.note ?? null,
         scheduledFor,
       },
@@ -59,6 +66,7 @@ export class OrdersService {
       order.id,
       buyer.fullName,
     );
+
     await this.push.notifySellerNewOrder(input.sellerId, order.id, buyer.fullName);
 
     return this.toOrderResponse(order);
@@ -67,6 +75,7 @@ export class OrdersService {
   async findMyOrders(userId: string, page = 1, limit = 20, status?: PrismaOrderStatus) {
     const skip = (page - 1) * limit;
     const where = { buyerId: userId, ...(status && { status }) };
+
     const [data, total] = await Promise.all([
       this.prisma.order.findMany({
         where,
@@ -77,8 +86,12 @@ export class OrdersService {
       }),
       this.prisma.order.count({ where }),
     ]);
+
     return {
-      data: data.map((o) => this.toOrderResponse(o)),
+      data: data.map(
+        (o: Prisma.OrderGetPayload<{ include: { menuItem: true; seller: true } }>) =>
+          this.toOrderResponse(o),
+      ),
       total,
       page,
       limit,
@@ -87,21 +100,36 @@ export class OrdersService {
   }
 
   async findIncomingOrders(sellerId: string, page = 1, limit = 20, status?: PrismaOrderStatus) {
-    await this.prisma.sellerProfile.findUniqueOrThrow({ where: { userId: sellerId } });
+    await this.prisma.sellerProfile.findUniqueOrThrow({
+      where: { userId: sellerId },
+    });
+
     const skip = (page - 1) * limit;
     const where = { sellerId, ...(status && { status }) };
+
     const [data, total] = await Promise.all([
       this.prisma.order.findMany({
         where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { menuItem: true, buyer: { select: { id: true, fullName: true, email: true } } },
+        include: {
+          menuItem: true,
+          buyer: { select: { id: true, fullName: true, email: true } },
+        },
       }),
       this.prisma.order.count({ where }),
     ]);
+
     return {
-      data: data.map((o) => this.toOrderResponse(o)),
+      data: data.map(
+        (o: Prisma.OrderGetPayload<{
+          include: {
+            menuItem: true;
+            buyer: { select: { id: true; fullName: true; email: true } };
+          };
+        }>) => this.toOrderResponse(o),
+      ),
       total,
       page,
       limit,
@@ -112,6 +140,7 @@ export class OrdersService {
   async findAllOrders(page = 1, limit = 20, status?: PrismaOrderStatus) {
     const skip = (page - 1) * limit;
     const where = status ? { status } : {};
+
     const [data, total] = await Promise.all([
       this.prisma.order.findMany({
         where,
@@ -122,8 +151,12 @@ export class OrdersService {
       }),
       this.prisma.order.count({ where }),
     ]);
+
     return {
-      data: data.map((o) => this.toOrderResponse(o)),
+      data: data.map(
+        (o: Prisma.OrderGetPayload<{ include: { menuItem: true; buyer: true; seller: true } }>) =>
+          this.toOrderResponse(o),
+      ),
       total,
       page,
       limit,
@@ -131,30 +164,38 @@ export class OrdersService {
     };
   }
 
-  async updateStatus(orderId: string, userId: string, userRole: string, status: PrismaOrderStatus) {
+  async updateStatus(
+    orderId: string,
+    userId: string,
+    userRole: string,
+    status: PrismaOrderStatus,
+  ) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: {
-        buyer: true,
-        seller: true,
-        menuItem: true,
-      },
+      include: { buyer: true, seller: true, menuItem: true },
     });
+
     if (!order) throw new NotFoundException('Order not found');
 
     const isSeller = order.sellerId === userId;
     const isBuyer = order.buyerId === userId;
     const isAdmin = userRole === 'ADMIN';
 
-    if (status === 'CANCELLED') {
+    if (status === PrismaOrderStatus.CANCELLED) {
       if (!isBuyer && !isAdmin) throw new ForbiddenException('Only buyer can cancel');
-      if (order.status !== 'PENDING') throw new BadRequestException('Only PENDING orders can be cancelled');
-    } else if (['ACCEPTED', 'REJECTED'].includes(status)) {
+      if (order.status !== PrismaOrderStatus.PENDING) {
+        throw new BadRequestException('Only PENDING orders can be cancelled');
+      }
+    } else if (status === PrismaOrderStatus.ACCEPTED || status === PrismaOrderStatus.REJECTED) {
       if (!isSeller && !isAdmin) throw new ForbiddenException('Only seller can accept/reject');
-      if (order.status !== 'PENDING') throw new BadRequestException('Only PENDING orders can be accepted/rejected');
-    } else if (status === 'COMPLETED') {
+      if (order.status !== PrismaOrderStatus.PENDING) {
+        throw new BadRequestException('Only PENDING orders can be accepted/rejected');
+      }
+    } else if (status === PrismaOrderStatus.COMPLETED) {
       if (!isSeller && !isAdmin) throw new ForbiddenException('Only seller can complete');
-      if (order.status !== 'ACCEPTED') throw new BadRequestException('Only ACCEPTED orders can be completed');
+      if (order.status !== PrismaOrderStatus.ACCEPTED) {
+        throw new BadRequestException('Only ACCEPTED orders can be completed');
+      }
     } else {
       throw new BadRequestException('Invalid status');
     }
@@ -165,19 +206,21 @@ export class OrdersService {
       include: { menuItem: true, buyer: true, seller: true },
     });
 
+    // אצלך השירותים מקבלים status: string, אז אפשר לשלוח על כל סטטוס
     await this.notifications.sendOrderStatusChangedEmail(
       order.buyer.email,
       order.buyer.fullName,
       order.id,
       status,
     );
+
     await this.push.notifyBuyerOrderStatus(order.buyerId, order.id, status);
 
     return this.toOrderResponse(updated);
   }
 
   async cancel(orderId: string, userId: string, userRole: string) {
-    return this.updateStatus(orderId, userId, userRole, 'CANCELLED');
+    return this.updateStatus(orderId, userId, userRole, PrismaOrderStatus.CANCELLED);
   }
 
   private toOrderResponse(order: any) {
@@ -191,7 +234,9 @@ export class OrdersService {
       scheduledFor: order.scheduledFor,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
-      menuItem: order.menuItem ? { ...order.menuItem, price: Number(order.menuItem.price) } : undefined,
+      menuItem: order.menuItem
+        ? { ...order.menuItem, price: Number(order.menuItem.price) }
+        : undefined,
       buyer: order.buyer,
       seller: order.seller,
     };
