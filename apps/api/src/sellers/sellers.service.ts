@@ -1,6 +1,23 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import type { CreateSellerProfileInput, UpdateSellerProfileInput } from '@orderbridge/shared';
+import type { Prisma } from '@prisma/client';
+
+type SellerWithUserBasic = Prisma.SellerProfileGetPayload<{
+  include: {
+    user: {
+      select: { id: true; fullName: true; email?: true };
+    };
+  };
+}>;
+
+type SellerWithUserPublic = Prisma.SellerProfileGetPayload<{
+  include: {
+    user: {
+      select: { id: true; fullName: true };
+    };
+  };
+}>;
 
 @Injectable()
 export class SellersService {
@@ -8,9 +25,8 @@ export class SellersService {
 
   async list(page = 1, limit = 20, category?: string) {
     const skip = (page - 1) * limit;
-    const where = category
-      ? { categories: { has: category } }
-      : {};
+    const where = category ? { categories: { has: category } } : {};
+
     const [data, total] = await Promise.all([
       this.prisma.sellerProfile.findMany({
         where,
@@ -25,8 +41,9 @@ export class SellersService {
       }),
       this.prisma.sellerProfile.count({ where }),
     ]);
+
     return {
-      data: data.map((s) => this.toPublicSeller(s)),
+      data: data.map((s: SellerWithUserBasic) => this.toPublicSeller(s)),
       total,
       page,
       limit,
@@ -41,8 +58,9 @@ export class SellersService {
         user: { select: { id: true, fullName: true } },
       },
     });
+
     if (!seller) throw new NotFoundException('Seller not found');
-    return this.toPublicSeller(seller);
+    return this.toPublicSeller(seller as SellerWithUserPublic);
   }
 
   async getMyProfile(userId: string) {
@@ -89,7 +107,7 @@ export class SellersService {
     if (ownerId !== sellerId) throw new ForbiddenException('Not allowed to modify this seller');
   }
 
-  private toPublicSeller(seller: any) {
+  private toPublicSeller(seller: SellerWithUserBasic | SellerWithUserPublic | any) {
     return {
       userId: seller.userId,
       displayName: seller.displayName,
