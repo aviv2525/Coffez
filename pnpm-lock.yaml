@@ -61,9 +61,6 @@ importers:
       passport-jwt:
         specifier: ^4.0.1
         version: 4.0.1
-      prisma:
-        specifier: ^5.7.0
-        version: 5.22.0
       reflect-metadata:
         specifier: ^0.1.14
         version: 0.1.14
@@ -113,9 +110,15 @@ importers:
       eslint:
         specifier: ^8.56.0
         version: 8.57.1
+      globals:
+        specifier: ^13.24.0
+        version: 13.24.0
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.19.33)(ts-node@10.9.2(@types/node@20.19.33)(typescript@5.9.3))
+      prisma:
+        specifier: ^5.7.0
+        version: 5.22.0
       source-map-support:
         specifier: ^0.5.21
         version: 0.5.21
