@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 const COOKIE_NAME = 'refreshToken';
-const MAX_AGE_DAYS = 7;
+//const MAX_AGE_DAYS = 7;
 
 export function setRefreshTokenCookie(res: Response, token: string, expiresAt: Date) {
   const maxAge = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
