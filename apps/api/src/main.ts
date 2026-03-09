@@ -9,8 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
-
+import { AllExceptionsFilter } from './common/http-exception.filter';
 import { HealthController } from './health.controller';
 console.log("TS_NODE:", process.env.TS_NODE_PROJECT, process.env.TS_NODE_TRANSPILE_ONLY);
 console.log(
@@ -24,6 +23,7 @@ async function bootstrap() {
   const config = app.get(ConfigService);
 
   app.use(cookieParser());
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
