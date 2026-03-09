@@ -1,5 +1,10 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '');
 
+if (!API_BASE) {
+  throw new Error('Missing NEXT_PUBLIC_API_URL');
+}
 export type ApiResponse<T> = T;
 
 async function getAccessToken(): Promise<string | null> {

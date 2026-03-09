@@ -144,7 +144,7 @@ Full API docs: run the API and open **Swagger** at `http://localhost:4000/swagge
    - Copy `.env.example` to `apps/api/.env` and set at least:
      - `DATABASE_URL` (e.g. `postgresql://user:pass@localhost:5432/orderbridge`)
      - `JWT_SECRET` (min 32 chars)
-   - For web: `apps/web/.env.local` with `NEXT_PUBLIC_API_URL=http://localhost:4000` (optional; default is same).
+   - For web: `apps/web/.env.local` with `NEXT_PUBLIC_API_URL=https://coffez-api.vercel.app` (optional; default is same).
 
 4. **Database**
    ```bash
