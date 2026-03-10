@@ -6,6 +6,10 @@ export const createSellerProfileSchema = z.object({
   categories: z.array(z.string().max(50)).max(10).default([]),
   locationText: z.string().max(200).optional().nullable(),
   avatarUrl: z.string().url().optional().nullable(),
+  beans: z.array(z.string().max(80)).max(20).default([]),
+  drinkTypes: z.array(z.string().max(80)).max(20).default([]),
+  machineType: z.string().max(200).optional().nullable(),
+  openingHours: z.string().max(500).optional().nullable(),
 });
 
 export const updateSellerProfileSchema = createSellerProfileSchema.partial();

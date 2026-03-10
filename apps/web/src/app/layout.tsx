@@ -4,13 +4,13 @@ import { OfflineBanner } from '@/components/OfflineBanner';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'OrderBridge',
-  description: 'Marketplace for sellers and orders',
+  title: 'COFFEZ',
+  description: 'Homemade specialty coffee — discover and order from local home coffee sellers',
   manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#4f46e5',
+  themeColor: '#78350f',
 };
 
 export default function RootLayout({

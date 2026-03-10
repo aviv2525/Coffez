@@ -1,7 +1,7 @@
 {
-  "name": "OrderBridge",
-  "short_name": "OrderBridge",
-  "description": "Marketplace for sellers and orders",
+  "name": "COFFEZ",
+  "short_name": "COFFEZ",
+  "description": "Homemade specialty coffee — discover and order from local home coffee sellers",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

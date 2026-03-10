@@ -1,23 +1,15 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { CreateSellerProfileInput, UpdateSellerProfileInput } from '@orderbridge/shared';
-import type { Prisma } from '@prisma/client';
 
-type SellerWithUserBasic = Prisma.SellerProfileGetPayload<{
-  include: {
-    user: {
-      select: { id: true; fullName: true; email?: true };
-    };
-  };
-}>;
-
-type SellerWithUserPublic = Prisma.SellerProfileGetPayload<{
-  include: {
-    user: {
-      select: { id: true; fullName: true };
-    };
-  };
-}>;
+/** Matches Prisma SellerProfile create input including coffee fields (use after prisma generate) */
+type SellerProfileCreateData = Prisma.SellerProfileUncheckedCreateInput & {
+  beans?: string[];
+  drinkTypes?: string[];
+  machineType?: string | null;
+  openingHours?: string | null;
+};
 
 @Injectable()
 export class SellersService {
@@ -37,13 +29,18 @@ export class SellersService {
           user: {
             select: { id: true, fullName: true, email: true },
           },
+          media: {
+            take: 1,
+            orderBy: { sortOrder: 'asc' },
+            select: { id: true, type: true, url: true, thumbnailUrl: true },
+          },
         },
       }),
       this.prisma.sellerProfile.count({ where }),
     ]);
 
     return {
-      data: data.map((s: SellerWithUserBasic) => this.toPublicSeller(s)),
+      data: data.map((s) => this.toPublicSeller(s)),
       total,
       page,
       limit,
@@ -56,11 +53,12 @@ export class SellersService {
       where: { userId: sellerId },
       include: {
         user: { select: { id: true, fullName: true } },
+        media: { orderBy: { sortOrder: 'asc' } },
       },
     });
 
     if (!seller) throw new NotFoundException('Seller not found');
-    return this.toPublicSeller(seller as SellerWithUserPublic);
+    return this.toPublicSellerDetail(seller);
   }
 
   async getMyProfile(userId: string) {
@@ -77,16 +75,19 @@ export class SellersService {
     });
     if (existing) throw new ForbiddenException('Seller profile already exists');
 
-    return this.prisma.sellerProfile.create({
-      data: {
-        userId,
-        displayName: input.displayName,
-        bio: input.bio ?? null,
-        categories: input.categories ?? [],
-        locationText: input.locationText ?? null,
-        avatarUrl: input.avatarUrl ?? null,
-      },
-    });
+    const data: SellerProfileCreateData = {
+      userId,
+      displayName: input.displayName,
+      bio: input.bio ?? null,
+      categories: input.categories ?? [],
+      locationText: input.locationText ?? null,
+      avatarUrl: input.avatarUrl ?? null,
+      beans: input.beans ?? [],
+      drinkTypes: input.drinkTypes ?? [],
+      machineType: input.machineType ?? null,
+      openingHours: input.openingHours ?? null,
+    };
+    return this.prisma.sellerProfile.create({ data });
   }
 
   async update(userId: string, input: UpdateSellerProfileInput) {
@@ -99,6 +100,10 @@ export class SellersService {
         ...(input.categories !== undefined && { categories: input.categories }),
         ...(input.locationText !== undefined && { locationText: input.locationText }),
         ...(input.avatarUrl !== undefined && { avatarUrl: input.avatarUrl }),
+        ...(input.beans !== undefined && { beans: input.beans }),
+        ...(input.drinkTypes !== undefined && { drinkTypes: input.drinkTypes }),
+        ...(input.machineType !== undefined && { machineType: input.machineType }),
+        ...(input.openingHours !== undefined && { openingHours: input.openingHours }),
       },
     });
   }
@@ -107,7 +112,8 @@ export class SellersService {
     if (ownerId !== sellerId) throw new ForbiddenException('Not allowed to modify this seller');
   }
 
-  private toPublicSeller(seller: SellerWithUserBasic | SellerWithUserPublic | any) {
+  private toPublicSeller(seller: any) {
+    const firstMedia = seller.media?.[0];
     return {
       userId: seller.userId,
       displayName: seller.displayName,
@@ -115,9 +121,28 @@ export class SellersService {
       categories: seller.categories,
       locationText: seller.locationText,
       avatarUrl: seller.avatarUrl,
+      beans: seller.beans ?? [],
+      drinkTypes: seller.drinkTypes ?? [],
+      machineType: seller.machineType ?? null,
+      openingHours: seller.openingHours ?? null,
+      coverMedia: firstMedia ? { id: firstMedia.id, type: firstMedia.type, url: firstMedia.url, thumbnailUrl: firstMedia.thumbnailUrl } : null,
       createdAt: seller.createdAt,
       updatedAt: seller.updatedAt,
       user: seller.user ? { id: seller.user.id, fullName: seller.user.fullName } : undefined,
+    };
+  }
+
+  private toPublicSellerDetail(seller: any) {
+    return {
+      ...this.toPublicSeller({ ...seller, media: seller.media ? [seller.media[0]] : [] }),
+      media: (seller.media ?? []).map((m: any) => ({
+        id: m.id,
+        type: m.type,
+        url: m.url,
+        thumbnailUrl: m.thumbnailUrl,
+        title: m.title,
+        caption: m.caption,
+      })),
     };
   }
 }
