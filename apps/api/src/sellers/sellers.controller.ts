@@ -32,6 +32,10 @@ export class SellersController {
       categories: dto.categories ?? [],
       locationText: dto.locationText,
       avatarUrl: dto.avatarUrl,
+      beans: dto.beans ?? [],
+      drinkTypes: dto.drinkTypes ?? [],
+      machineType: dto.machineType,
+      openingHours: dto.openingHours,
     });
   }
 

@@ -15,6 +15,10 @@ export interface SellerProfile {
     categories: string[];
     locationText: string | null;
     avatarUrl: string | null;
+    beans: string[];
+    drinkTypes: string[];
+    machineType: string | null;
+    openingHours: string | null;
     createdAt: Date;
     updatedAt: Date;
 }

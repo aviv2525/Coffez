@@ -48,34 +48,59 @@ async function main() {
     where: { userId: seller1.id },
     create: {
       userId: seller1.id,
-      displayName: "Alice's Kitchen",
-      bio: 'Homemade meals and pastries.',
-      categories: ['Food', 'Pastries'],
+      displayName: "Alice's Coffee Corner",
+      bio: 'Specialty coffee from my home setup. Single-origin beans, espresso and pour-over. Tel Aviv area.',
+      categories: ['Specialty', 'Espresso'],
       locationText: 'Tel Aviv',
       avatarUrl: null,
+      beans: ['Ethiopia Yirgacheffe', 'Colombia', 'Brazil Santos'],
+      drinkTypes: ['Espresso', 'Cappuccino', 'Flat White', 'Pour Over', 'Iced Latte'],
+      machineType: 'Lelit Bianca / Comandante',
+      openingHours: 'Sun–Thu 08:00–14:00',
     },
-    update: {},
+    update: {
+      displayName: "Alice's Coffee Corner",
+      bio: 'Specialty coffee from my home setup. Single-origin beans, espresso and pour-over. Tel Aviv area.',
+      categories: ['Specialty', 'Espresso'],
+      beans: ['Ethiopia Yirgacheffe', 'Colombia', 'Brazil Santos'],
+      drinkTypes: ['Espresso', 'Cappuccino', 'Flat White', 'Pour Over', 'Iced Latte'],
+      machineType: 'Lelit Bianca / Comandante',
+      openingHours: 'Sun–Thu 08:00–14:00',
+    },
   });
 
   await prisma.sellerProfile.upsert({
     where: { userId: seller2.id },
     create: {
       userId: seller2.id,
-      displayName: "Bob's Crafts",
-      bio: 'Handmade crafts and art.',
-      categories: ['Crafts', 'Art'],
+      displayName: "Bob's Home Roast",
+      bio: 'Small-batch home roasting. Espresso and filter. Jerusalem.',
+      categories: ['Roaster', 'Filter'],
       locationText: 'Jerusalem',
       avatarUrl: null,
+      beans: ['Guatemala', 'Kenya', 'Brazil'],
+      drinkTypes: ['Espresso', 'Americano', 'Cortado', 'V60', 'AeroPress'],
+      machineType: 'Profitec GO / Gaggia Classic',
+      openingHours: 'Mon–Fri 07:30–12:00, 16:00–19:00',
     },
-    update: {},
+    update: {
+      displayName: "Bob's Home Roast",
+      bio: 'Small-batch home roasting. Espresso and filter. Jerusalem.',
+      categories: ['Roaster', 'Filter'],
+      beans: ['Guatemala', 'Kenya', 'Brazil'],
+      drinkTypes: ['Espresso', 'Americano', 'Cortado', 'V60', 'AeroPress'],
+      machineType: 'Profitec GO / Gaggia Classic',
+      openingHours: 'Mon–Fri 07:30–12:00, 16:00–19:00',
+    },
   });
 
   const menu1 = await prisma.menuItem.findFirst({ where: { sellerId: seller1.id } });
   if (!menu1) {
     await prisma.menuItem.createMany({
       data: [
-        { sellerId: seller1.id, title: 'Croissant', description: 'Fresh butter croissant', price: 12.5, isAvailable: true },
-        { sellerId: seller1.id, title: 'Salad Bowl', description: 'Seasonal salad', price: 28, isAvailable: true },
+        { sellerId: seller1.id, title: 'Double Espresso', description: 'Single-origin Ethiopia, 18g in, 36g out', price: 14, isAvailable: true },
+        { sellerId: seller1.id, title: 'Cappuccino', description: 'House blend, oat or cow milk', price: 18, isAvailable: true },
+        { sellerId: seller1.id, title: 'V60 Pour Over', description: 'Colombia or Brazil, 250ml', price: 22, isAvailable: true },
       ],
     });
   }
@@ -84,7 +109,8 @@ async function main() {
   if (!menu2) {
     await prisma.menuItem.createMany({
       data: [
-        { sellerId: seller2.id, title: 'Handmade Vase', description: 'Ceramic vase', price: 85, isAvailable: true },
+        { sellerId: seller2.id, title: 'Espresso', description: 'Home-roasted blend', price: 12, isAvailable: true },
+        { sellerId: seller2.id, title: 'Cortado', description: 'Double shot, 120ml milk', price: 16, isAvailable: true },
       ],
     });
   }

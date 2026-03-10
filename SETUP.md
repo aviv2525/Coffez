@@ -1,4 +1,4 @@
-# הרצת OrderBridge מקומית
+# הרצת COFFEZ מקומית
 
 ## 1. התקנת תלויות
 
@@ -57,6 +57,31 @@ pnpm dev
 
 - **Web:** http://localhost:3000 (או פורט אחר אם 3000 תפוס)
 - **API:** http://localhost:4000
+
+## 6. מיגרציה לשדות קפה (beans, drinkTypes, machineType, openingHours)
+
+אם ה־DB כבר רץ עם מיגרציות ישנות, הרץ פעם אחת:
+
+```bash
+cd apps/api
+npx prisma migrate deploy
+```
+
+אם המיגרציה נכשלת כי הטבלה `seller_profiles` לא קיימת – וודא ש־`migrate deploy` רץ קודם עם מיגרציית ה־init. אם הטבלאות נוצרו ידנית, הוסף את העמודות ב־Neon SQL Editor:
+
+```sql
+ALTER TABLE "seller_profiles" ADD COLUMN IF NOT EXISTS "beans" TEXT[] DEFAULT ARRAY[]::TEXT[];
+ALTER TABLE "seller_profiles" ADD COLUMN IF NOT EXISTS "drink_types" TEXT[] DEFAULT ARRAY[]::TEXT[];
+ALTER TABLE "seller_profiles" ADD COLUMN IF NOT EXISTS "machine_type" TEXT;
+ALTER TABLE "seller_profiles" ADD COLUMN IF NOT EXISTS "opening_hours" TEXT;
+```
+
+אחרי עדכון ה־DB, הרץ seed מחדש כדי לראות נתוני דמו של קפה:
+
+```bash
+cd apps/api
+npx prisma db seed
+```
 
 ## אם משהו נכשל
 
