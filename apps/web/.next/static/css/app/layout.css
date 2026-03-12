@@ -750,9 +750,6 @@ video {
 .whitespace-pre-line {
   white-space: pre-line;
 }
-.break-words {
-  overflow-wrap: break-word;
-}
 .rounded {
   border-radius: 0.25rem;
 }
@@ -952,10 +949,6 @@ video {
 .py-8 {
   padding-top: 2rem;
   padding-bottom: 2rem;
-}
-.px-1 {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
 }
 .pb-12 {
   padding-bottom: 3rem;
