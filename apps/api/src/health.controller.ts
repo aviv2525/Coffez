@@ -1,15 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Inject } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
-
-
 
 @Controller('health')
 export class HealthController {
-  constructor(private readonly prisma: PrismaService) {
-    console.log('Prisma injected?', !!prisma);
-    console.log('paramtypes:', Reflect.getMetadata('design:paramtypes', HealthController));
-
-  }
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+  ) {}
 
   @Get()
   async check() {

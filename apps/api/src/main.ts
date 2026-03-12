@@ -6,7 +6,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import cookieParser from 'cookie-parser';
+const cookieParser = require('cookie-parser');
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/http-exception.filter';
@@ -43,7 +43,7 @@ async function bootstrap() {
 
   try {
     const swagger = new DocumentBuilder()
-      .setTitle('OrderBridge API')
+      .setTitle('Coffez API')  
       .setDescription('Marketplace API for sellers and orders')
       .setVersion('1.0')
       .addBearerAuth()
@@ -53,7 +53,6 @@ async function bootstrap() {
   } catch (e) {
     console.warn('Swagger setup skipped:', (e as Error).message);
   }
-
   const basePort = Number(config.get<number>('PORT', 4000)) || 4000;
   const maxAttempts = 20;
   let port = basePort;
