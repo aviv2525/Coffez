@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -183,7 +183,9 @@ export class AuthService {
   }
 
   private async hashRefreshToken(token: string) {
-    return argon2.hash(token, { type: argon2.argon2id });
+    // Use deterministic hashing so the same raw token maps to the same stored hash.
+    // This allows us to look up refresh tokens by hash value.
+    return createHash('sha256').update(token).digest('hex');
   }
 
   private async createRefreshToken(userId: string) {
