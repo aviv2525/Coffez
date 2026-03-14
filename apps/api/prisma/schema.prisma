@@ -58,6 +58,13 @@ model SellerProfile {
   categories   String[]       @default([])
   locationText String?        @map("location_text")
   avatarUrl    String?        @map("avatar_url")
+
+  beans        String[]       @default([])
+  drinkTypes   String[]       @default([])
+
+  machineType  String?        @map("machine_type")
+  openingHours String?        @map("opening_hours")
+
   createdAt    DateTime       @default(now()) @map("created_at")
   updatedAt    DateTime       @updatedAt @map("updated_at")
   menu         MenuItem[]

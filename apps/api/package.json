@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "prisma generate && nest build", 
-    "dev": "tsx watch -r tsconfig-paths/register src/main.ts",
+    "dev": "pnpm exec ts-node -r tsconfig-paths/register -r reflect-metadata src/main.ts",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
     "lint": "eslint \"src/**/*.ts\" --max-warnings 999",

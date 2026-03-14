@@ -40,7 +40,7 @@ export default function HomePage() {
               Browse coffee sellers
             </Link>
             <Link
-              href="/auth/register"
+              href="/settings/seller"
               className="border border-amber-300 text-amber-900 px-6 py-3 rounded-xl hover:bg-amber-50 font-medium"
             >
               Sell your coffee
