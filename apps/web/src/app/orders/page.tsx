@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { Header } from '@/components/Header';
 
 type Order = {
   id: string;
@@ -46,17 +47,7 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="border-b border-amber-200/60 bg-white">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="text-xl font-bold text-amber-950">COFFEZ</Link>
-          <nav className="flex gap-4">
-            <Link href="/marketplace" className="text-amber-900/80 hover:text-amber-950">Marketplace</Link>
-            <Link href="/orders" className="text-amber-900 font-medium">Orders</Link>
-            <Link href="/settings/seller" className="text-amber-900/80 hover:text-amber-950">Seller</Link>
-            <Link href="/auth/login" className="text-amber-900/80 hover:text-amber-950">Log in</Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Orders</h1>
         <div className="flex gap-2 border-b mb-6">

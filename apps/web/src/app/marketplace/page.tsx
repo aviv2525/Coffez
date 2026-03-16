@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
+import { Header } from '@/components/Header';
 
 type CoverMedia = { id: string; type: string; url: string; thumbnailUrl: string | null } | null;
 type Seller = {
@@ -142,16 +143,7 @@ export default function MarketplacePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-amber-50/40">
-        <header className="border-b border-amber-200/60 bg-white/90 backdrop-blur">
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <Link href="/" className="text-xl font-bold text-amber-950">COFFEZ</Link>
-            <nav className="flex gap-4">
-              <Link href="/marketplace" className="text-amber-900/80 hover:text-amber-950">Marketplace</Link>
-              <Link href="/orders" className="text-amber-900/80 hover:text-amber-950">Orders</Link>
-              <Link href="/auth/login" className="text-amber-900/80 hover:text-amber-950">Log in</Link>
-            </nav>
-          </div>
-        </header>
+        <Header />
         <main className="container mx-auto px-4 py-12">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-amber-200/50 rounded w-56" />
@@ -181,16 +173,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-amber-50/40">
-      <header className="border-b border-amber-200/60 bg-white/90 backdrop-blur">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="text-xl font-bold text-amber-950">COFFEZ</Link>
-          <nav className="flex gap-4">
-            <Link href="/marketplace" className="text-amber-900/80 hover:text-amber-950">Marketplace</Link>
-            <Link href="/orders" className="text-amber-900/80 hover:text-amber-950">Orders</Link>
-            <Link href="/auth/login" className="text-amber-900/80 hover:text-amber-950">Log in</Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-amber-950">Home coffee sellers</h1>

@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { apiFetch, setAuthToken } from '@/lib/api';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -16,16 +17,12 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const { data, error: err } = await apiFetch<{ user: unknown; accessToken: string }>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+    const { success, error: loginError } = await login(email, password);
     setLoading(false);
-    if (err || !data?.accessToken) {
-      setError(err || 'Login failed');
+    if (!success) {
+      setError(loginError || 'Login failed');
       return;
     }
-    setAuthToken(data.accessToken);
     router.push('/orders');
     router.refresh();
   }
