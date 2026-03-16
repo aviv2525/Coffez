@@ -30,7 +30,9 @@ export default function SellerMenuPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -79,7 +81,16 @@ export default function SellerMenuPage() {
     };
   }, [router]);
 
-  async function handleAddItem(e: React.FormEvent) {
+  function resetForm() {
+    setEditingItemId(null);
+    setTitle('');
+    setDescription('');
+    setPrice('');
+    setImageUrl('');
+    setIsAvailable(true);
+  }
+
+  async function handleSaveItem(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !price.trim()) return;
 
@@ -87,28 +98,45 @@ export default function SellerMenuPage() {
     setError(null);
 
     const numericPrice = Number(price);
-    const createRes = await apiFetch<MenuItem>('/menu', {
-      method: 'POST',
-      body: JSON.stringify({
-        title: title.trim(),
-        description: description.trim() || null,
-        price: numericPrice,
-        imageUrl: null,
-        isAvailable,
-      }),
-    });
-    setSubmitting(false);
+    const payload = {
+      title: title.trim(),
+      description: description.trim() || null,
+      price: numericPrice,
+      imageUrl: imageUrl.trim() || null,
+      isAvailable,
+    };
 
-    if (createRes.error || !createRes.data) {
-      setError(createRes.error || 'Failed to add item');
-      return;
+    try {
+      if (editingItemId) {
+        const res = await apiFetch<MenuItem>(`/menu/${editingItemId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload),
+        });
+        if (res.error || !res.data) {
+          setError(res.error || 'Failed to update item');
+          return;
+        }
+
+        setMenu((prev) => prev.map((i) => (i.id === editingItemId ? res.data! : i)));
+        resetForm();
+        return;
+      }
+
+      const createRes = await apiFetch<MenuItem>('/menu', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      if (createRes.error || !createRes.data) {
+        setError(createRes.error || 'Failed to add item');
+        return;
+      }
+
+      setMenu((prev) => [...prev, createRes.data!]);
+      resetForm();
+    } finally {
+      setSubmitting(false);
     }
-
-    setMenu((prev) => [...prev, createRes.data!]);
-    setTitle('');
-    setDescription('');
-    setPrice('');
-    setIsAvailable(true);
   }
 
   async function handleDeleteItem(id: string) {
@@ -145,6 +173,15 @@ export default function SellerMenuPage() {
         items.map((i) => (i.id === item.id ? { ...i, isAvailable: res.data!.isAvailable } : i)),
       );
     }
+  }
+
+  function startEditItem(item: MenuItem) {
+    setEditingItemId(item.id);
+    setTitle(item.title);
+    setDescription(item.description ?? '');
+    setPrice(String(item.price));
+    setImageUrl(item.imageUrl ?? '');
+    setIsAvailable(item.isAvailable);
   }
 
   if (state === 'loading') {
@@ -202,8 +239,10 @@ export default function SellerMenuPage() {
         )}
 
         <section className="mb-8 bg-white rounded-2xl border border-amber-200/80 p-6">
-          <h2 className="text-lg font-semibold text-amber-950 mb-4">Add new item</h2>
-          <form onSubmit={handleAddItem} className="space-y-4">
+          <h2 className="text-lg font-semibold text-amber-950 mb-4">
+            {editingItemId ? 'Edit item' : 'Add new item'}
+          </h2>
+          <form onSubmit={handleSaveItem} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">Title</label>
               <input
@@ -223,6 +262,16 @@ export default function SellerMenuPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full border border-amber-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
                 rows={3}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Image URL (optional)</label>
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full border border-amber-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
               />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -248,13 +297,24 @@ export default function SellerMenuPage() {
                 Available
               </label>
             </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center justify-center rounded-xl bg-amber-900 px-4 py-2.5 text-sm font-medium text-amber-50 hover:bg-amber-800 disabled:opacity-50"
-            >
-              {submitting ? 'Adding…' : 'Add item'}
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="inline-flex items-center justify-center rounded-xl bg-amber-900 px-4 py-2.5 text-sm font-medium text-amber-50 hover:bg-amber-800 disabled:opacity-50"
+              >
+                {submitting ? (editingItemId ? 'Saving…' : 'Adding…') : editingItemId ? 'Save changes' : 'Add item'}
+              </button>
+              {editingItemId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="inline-flex items-center justify-center rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-50"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         </section>
 
@@ -271,17 +331,32 @@ export default function SellerMenuPage() {
                   key={item.id}
                   className="bg-white rounded-2xl border border-amber-200/80 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                 >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-amber-950">{item.title}</h3>
-                      <span className="text-amber-800 font-medium text-sm">₪{item.price}</span>
-                    </div>
-                    {item.description && (
-                      <p className="mt-1 text-sm text-stone-600">{item.description}</p>
+                  <div className="flex items-start gap-3">
+                    {item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-14 h-14 rounded-xl object-cover border border-amber-200/80"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl border border-amber-200/80 bg-amber-50 flex items-center justify-center text-amber-300">
+                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M7 3a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2v2a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-1a3 3 0 0 0-3-3h-1V7a4 4 0 0 0-4-4H7zm0 2h8a2 2 0 0 1 2 2v6h1a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+                        </svg>
+                      </div>
                     )}
-                    <p className="mt-1 text-xs text-stone-500">
-                      {item.isAvailable ? 'Available for orders' : 'Currently unavailable'}
-                    </p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-amber-950">{item.title}</h3>
+                        <span className="text-amber-800 font-medium text-sm">₪{item.price}</span>
+                      </div>
+                      {item.description && (
+                        <p className="mt-1 text-sm text-stone-600">{item.description}</p>
+                      )}
+                      <p className="mt-1 text-xs text-stone-500">
+                        {item.isAvailable ? 'Available for orders' : 'Currently unavailable'}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 justify-end">
                     <button
@@ -294,6 +369,13 @@ export default function SellerMenuPage() {
                       }`}
                     >
                       {item.isAvailable ? 'Mark unavailable' : 'Mark available'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => startEditItem(item)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-medium border border-amber-200 text-amber-900 hover:bg-amber-50"
+                    >
+                      Edit
                     </button>
                     <button
                       type="button"

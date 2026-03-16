@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from '@orderbridge/shared';
 import { apiFetch, setAuthToken, clearAuthToken } from '@/lib/api';
 
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const restoreSession = async () => {
+  const restoreSession = useCallback(async () => {
     setLoading(true);
     try {
       // Try to refresh token first
@@ -111,11 +111,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       setUser(null);
     }
-  };
+  }, []);
 
   useEffect(() => {
     restoreSession();
-  }, []);
+  }, [restoreSession]);
 
   const value: AuthContextType = {
     ...authState,

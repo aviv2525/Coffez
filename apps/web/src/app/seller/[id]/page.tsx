@@ -224,6 +224,17 @@ export default function SellerPage() {
                     key={item.id}
                     className="bg-white rounded-xl border border-amber-200/80 p-5 shadow-sm hover:shadow transition-shadow flex flex-col"
                   >
+                    {item.imageUrl ? (
+                      <div className="mb-4 overflow-hidden rounded-xl">
+                        <img src={item.imageUrl} alt={item.title} className="w-full h-32 object-cover" />
+                      </div>
+                    ) : (
+                      <div className="mb-4 h-32 rounded-xl border border-amber-200/80 bg-amber-50 flex items-center justify-center text-amber-300">
+                        <svg className="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M7 3a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2v2a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-1a3 3 0 0 0-3-3h-1V7a4 4 0 0 0-4-4H7zm0 2h8a2 2 0 0 1 2 2v6h1a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+                        </svg>
+                      </div>
+                    )}
                     <div className="flex justify-between items-start gap-2">
                       <h3 className="font-semibold text-amber-950">{item.title}</h3>
                       <span className="text-amber-800 font-semibold whitespace-nowrap">₪{item.price}</span>
