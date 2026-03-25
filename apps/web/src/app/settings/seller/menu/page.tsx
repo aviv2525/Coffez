@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
 type MenuItem = {
   id: string;
@@ -34,6 +37,26 @@ export default function SellerMenuPage() {
   const [isAvailable, setIsAvailable] = useState(true);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function uploadMenuImage(file: File) {
+    setUploading(true);
+    const form = new FormData();
+    form.append('file', file);
+    form.append('upload_preset', UPLOAD_PRESET);
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      { method: 'POST', body: form }
+    );
+    const json = await res.json();
+    setUploading(false);
+    if (res.ok && json.secure_url) {
+      setImageUrl(json.secure_url);
+    } else {
+      setError('Image upload failed. Please try again.');
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -265,14 +288,38 @@ export default function SellerMenuPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">Image URL (optional)</label>
+              <label className="block text-sm font-medium text-stone-700 mb-2">Image (optional)</label>
+              {imageUrl && (
+                <img src={imageUrl} alt="Preview" className="w-20 h-20 rounded-xl object-cover border border-amber-200/80 mb-2" />
+              )}
               <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full border border-amber-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadMenuImage(f); }}
               />
+              <div className="flex gap-2 items-center">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex items-center gap-1.5 py-2 px-3 rounded-xl text-sm font-medium border border-amber-300 text-amber-900 hover:bg-amber-50 disabled:opacity-50 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {uploading ? 'Uploading…' : 'Choose image'}
+                </button>
+                <span className="text-xs text-stone-400">or</span>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="paste a URL"
+                  className="flex-1 border border-amber-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
+                />
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
