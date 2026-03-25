@@ -12,5 +12,8 @@ exports.createSellerProfileSchema = zod_1.z.object({
     drinkTypes: zod_1.z.array(zod_1.z.string().max(80)).max(20).default([]),
     machineType: zod_1.z.string().max(200).optional().nullable(),
     openingHours: zod_1.z.string().max(500).optional().nullable(),
+    lat: zod_1.z.number().min(-90).max(90).optional().nullable(),
+    lng: zod_1.z.number().min(-180).max(180).optional().nullable(),
+    pickupDetails: zod_1.z.string().max(500).optional().nullable(),
 });
 exports.updateSellerProfileSchema = exports.createSellerProfileSchema.partial();

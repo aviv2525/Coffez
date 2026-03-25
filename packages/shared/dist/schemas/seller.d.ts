@@ -9,6 +9,9 @@ export declare const createSellerProfileSchema: z.ZodObject<{
     drinkTypes: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     machineType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     openingHours: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    lat: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    lng: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    pickupDetails: z.ZodNullable<z.ZodOptional<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     displayName: string;
     categories: string[];
@@ -19,6 +22,9 @@ export declare const createSellerProfileSchema: z.ZodObject<{
     avatarUrl?: string | null | undefined;
     machineType?: string | null | undefined;
     openingHours?: string | null | undefined;
+    lat?: number | null | undefined;
+    lng?: number | null | undefined;
+    pickupDetails?: string | null | undefined;
 }, {
     displayName: string;
     bio?: string | null | undefined;
@@ -29,6 +35,9 @@ export declare const createSellerProfileSchema: z.ZodObject<{
     drinkTypes?: string[] | undefined;
     machineType?: string | null | undefined;
     openingHours?: string | null | undefined;
+    lat?: number | null | undefined;
+    lng?: number | null | undefined;
+    pickupDetails?: string | null | undefined;
 }>;
 export declare const updateSellerProfileSchema: z.ZodObject<{
     displayName: z.ZodOptional<z.ZodString>;
@@ -40,6 +49,9 @@ export declare const updateSellerProfileSchema: z.ZodObject<{
     drinkTypes: z.ZodOptional<z.ZodDefault<z.ZodArray<z.ZodString, "many">>>;
     machineType: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     openingHours: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    lat: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodNumber>>>;
+    lng: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodNumber>>>;
+    pickupDetails: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
 }, "strip", z.ZodTypeAny, {
     displayName?: string | undefined;
     bio?: string | null | undefined;
@@ -50,6 +62,9 @@ export declare const updateSellerProfileSchema: z.ZodObject<{
     drinkTypes?: string[] | undefined;
     machineType?: string | null | undefined;
     openingHours?: string | null | undefined;
+    lat?: number | null | undefined;
+    lng?: number | null | undefined;
+    pickupDetails?: string | null | undefined;
 }, {
     displayName?: string | undefined;
     bio?: string | null | undefined;
@@ -60,6 +75,9 @@ export declare const updateSellerProfileSchema: z.ZodObject<{
     drinkTypes?: string[] | undefined;
     machineType?: string | null | undefined;
     openingHours?: string | null | undefined;
+    lat?: number | null | undefined;
+    lng?: number | null | undefined;
+    pickupDetails?: string | null | undefined;
 }>;
 export type CreateSellerProfileInput = z.infer<typeof createSellerProfileSchema>;
 export type UpdateSellerProfileInput = z.infer<typeof updateSellerProfileSchema>;
