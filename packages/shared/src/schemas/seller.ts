@@ -10,6 +10,9 @@ export const createSellerProfileSchema = z.object({
   drinkTypes: z.array(z.string().max(80)).max(20).default([]),
   machineType: z.string().max(200).optional().nullable(),
   openingHours: z.string().max(500).optional().nullable(),
+  lat: z.number().min(-90).max(90).optional().nullable(),
+  lng: z.number().min(-180).max(180).optional().nullable(),
+  pickupDetails: z.string().max(500).optional().nullable(),
 });
 
 export const updateSellerProfileSchema = createSellerProfileSchema.partial();

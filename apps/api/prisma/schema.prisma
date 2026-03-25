@@ -63,8 +63,11 @@ model SellerProfile {
   beans        String[]       @default([])
   drinkTypes   String[]       @default([])
 
-  machineType  String?        @map("machine_type")
-  openingHours String?        @map("opening_hours")
+  machineType    String?        @map("machine_type")
+  openingHours   String?        @map("opening_hours")
+  lat            Float?
+  lng            Float?
+  pickupDetails  String?        @map("pickup_details")
 
   createdAt    DateTime       @default(now()) @map("created_at")
   updatedAt    DateTime       @updatedAt @map("updated_at")

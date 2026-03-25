@@ -87,6 +87,9 @@ export class SellersService {
       drinkTypes: input.drinkTypes ?? [],
       machineType: input.machineType ?? null,
       openingHours: input.openingHours ?? null,
+      lat: input.lat ?? null,
+      lng: input.lng ?? null,
+      pickupDetails: input.pickupDetails ?? null,
     };
     return this.prisma.sellerProfile.create({ data });
   }
@@ -105,6 +108,9 @@ export class SellersService {
         ...(input.drinkTypes !== undefined && { drinkTypes: input.drinkTypes }),
         ...(input.machineType !== undefined && { machineType: input.machineType }),
         ...(input.openingHours !== undefined && { openingHours: input.openingHours }),
+        ...(input.lat !== undefined && { lat: input.lat }),
+        ...(input.lng !== undefined && { lng: input.lng }),
+        ...(input.pickupDetails !== undefined && { pickupDetails: input.pickupDetails }),
       },
     });
   }
@@ -130,6 +136,9 @@ export class SellersService {
       drinkTypes: seller.drinkTypes ?? [],
       machineType: seller.machineType ?? null,
       openingHours: seller.openingHours ?? null,
+      lat: seller.lat ?? null,
+      lng: seller.lng ?? null,
+      pickupDetails: seller.pickupDetails ?? null,
       coverMedia: firstMedia ? { id: firstMedia.id, type: firstMedia.type, url: firstMedia.url, thumbnailUrl: firstMedia.thumbnailUrl } : null,
       avgRating,
       reviewCount,

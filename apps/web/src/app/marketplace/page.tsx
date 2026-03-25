@@ -17,6 +17,7 @@ type Seller = {
   drinkTypes?: string[];
   machineType?: string | null;
   openingHours?: string | null;
+  pickupDetails?: string | null;
   coverMedia?: CoverMedia;
   avgRating?: number | null;
   reviewCount?: number;
@@ -75,6 +76,9 @@ function SellerCard({ s }: { s: Seller }) {
         </div>
         {s.locationText && (
           <p className="text-sm text-amber-800/80 mt-0.5">📍 {s.locationText}</p>
+        )}
+        {s.pickupDetails && (
+          <p className="text-xs text-stone-500 mt-0.5">🚪 {s.pickupDetails}</p>
         )}
         {s.bio && (
           <p className="text-sm text-stone-600 mt-2 line-clamp-2">{s.bio}</p>

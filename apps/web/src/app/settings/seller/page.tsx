@@ -17,6 +17,9 @@ type SellerProfile = {
   beans: string[];
   drinkTypes: string[];
   avatarUrl: string | null;
+  lat: number | null;
+  lng: number | null;
+  pickupDetails: string | null;
 };
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
@@ -45,6 +48,14 @@ export default function SellerSettingsPage() {
   const [drinkTypes, setDrinkTypes] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState<string | null>(null);
+
+  // Location
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
+  const [pickupDetails, setPickupDetails] = useState('');
+  const [geoQuery, setGeoQuery] = useState('');
+  const [geoSearching, setGeoSearching] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,6 +98,9 @@ export default function SellerSettingsPage() {
     setMachineType(p.machineType ?? '');
     setBeans((p.beans ?? []).join(', '));
     setDrinkTypes((p.drinkTypes ?? []).join(', '));
+    setLat(p.lat ?? null);
+    setLng(p.lng ?? null);
+    setPickupDetails(p.pickupDetails ?? '');
   }
 
   async function uploadFile(file: File) {
@@ -139,6 +153,9 @@ export default function SellerSettingsPage() {
         machineType: machineType.trim() || null,
         beans: beans.split(',').map((b) => b.trim()).filter(Boolean),
         drinkTypes: drinkTypes.split(',').map((d) => d.trim()).filter(Boolean),
+        lat: lat ?? null,
+        lng: lng ?? null,
+        pickupDetails: pickupDetails.trim() || null,
       }),
     });
     setProfileSaving(false);
@@ -147,6 +164,35 @@ export default function SellerSettingsPage() {
     } else {
       setProfileMsg('Saved!');
     }
+  }
+
+  async function searchLocation() {
+    const q = geoQuery.trim();
+    if (!q) return;
+    setGeoSearching(true);
+    setGeoError(null);
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`;
+      const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        setGeoError('Address not found. Try a more specific address.');
+      } else {
+        const { lat: resLat, lon: resLon, display_name } = data[0];
+        setLat(parseFloat(resLat));
+        setLng(parseFloat(resLon));
+        if (!locationText.trim()) setLocationText(display_name);
+      }
+    } catch {
+      setGeoError('Search failed. Please try again.');
+    } finally {
+      setGeoSearching(false);
+    }
+  }
+
+  function clearLocation() {
+    setLat(null);
+    setLng(null);
   }
 
   if (state === 'loading') {
@@ -268,10 +314,56 @@ export default function SellerSettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">Location</label>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Location (text)</label>
               <input type="text" value={locationText} onChange={(e) => setLocationText(e.target.value)}
                 placeholder="e.g. Tel Aviv, Florentin"
                 className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none" />
+            </div>
+
+            {/* Map pin */}
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Map pin</label>
+              {lat !== null && lng !== null ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-stone-600 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                    <svg className="w-4 h-4 text-green-600 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/>
+                    </svg>
+                    <span className="truncate">{lat.toFixed(5)}, {lng.toFixed(5)}</span>
+                    <button type="button" onClick={clearLocation} className="ml-auto text-xs text-red-500 hover:text-red-700 shrink-0">Remove</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={geoQuery}
+                    onChange={(e) => setGeoQuery(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); searchLocation(); } }}
+                    placeholder="Search address to pin on map…"
+                    className="flex-1 border border-amber-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={searchLocation}
+                    disabled={geoSearching || !geoQuery.trim()}
+                    className="py-2 px-4 rounded-xl text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 disabled:opacity-50 transition-colors shrink-0"
+                  >
+                    {geoSearching ? 'Searching…' : 'Search'}
+                  </button>
+                </div>
+              )}
+              {geoError && <p className="text-xs text-red-600 mt-1">{geoError}</p>}
+              <p className="text-xs text-stone-400 mt-1">Used to show your location on the map in your profile</p>
+            </div>
+
+            {/* Pickup details */}
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Pickup details</label>
+              <input type="text" value={pickupDetails} onChange={(e) => setPickupDetails(e.target.value)}
+                placeholder="e.g. Entrance B, 3rd floor, apartment 12"
+                className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none" />
+              <p className="text-xs text-stone-400 mt-1">Building entrance, floor, apartment — shown to buyers after ordering</p>
             </div>
 
             <div>

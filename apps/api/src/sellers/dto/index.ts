@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsArray, IsOptional, MaxLength, IsUrl } from 'class-validator';
+import { IsString, IsArray, IsOptional, MaxLength, IsUrl, IsNumber, Min, Max } from 'class-validator';
 
 export class CreateSellerProfileDto {
   @ApiProperty()
@@ -53,6 +53,24 @@ export class CreateSellerProfileDto {
   @IsString()
   @MaxLength(500)
   openingHours?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(-90) @Max(90)
+  lat?: number | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(-180) @Max(180)
+  lng?: number | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  pickupDetails?: string | null;
 }
 
 export class UpdateSellerProfileDto {
@@ -108,4 +126,22 @@ export class UpdateSellerProfileDto {
   @IsString()
   @MaxLength(500)
   openingHours?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(-90) @Max(90)
+  lat?: number | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(-180) @Max(180)
+  lng?: number | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  pickupDetails?: string | null;
 }
