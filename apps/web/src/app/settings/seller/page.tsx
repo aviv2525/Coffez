@@ -69,8 +69,7 @@ export default function SellerSettingsPage() {
   async function uploadFile(file: File) {
     setUploading(true);
     setSaveMsg(null);
-    console.log('Cloudinary upload → cloud_name:', CLOUD_NAME, '| upload_preset:', UPLOAD_PRESET);
-    const form = new FormData();
+const form = new FormData();
     form.append('file', file);
     form.append('upload_preset', UPLOAD_PRESET);
 
