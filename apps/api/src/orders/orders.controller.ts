@@ -64,7 +64,7 @@ export class OrdersController {
     @Param('id') orderId: string,
     @Body() dto: UpdateOrderStatusDto,
   ) {
-    return this.orders.updateStatus(orderId, user.id, user.role, dto.status as OrderStatus);
+    return this.orders.updateStatus(orderId, user.id, user.role, dto.status as OrderStatus, dto.estimatedMinutes);
   }
 
   @ApiBearerAuth()

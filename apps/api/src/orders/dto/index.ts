@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsInt, Min, Max } from 'class-validator';
 
 export class CreateOrderDto {
   @ApiProperty()
@@ -25,4 +25,11 @@ export class UpdateOrderStatusDto {
   @ApiProperty({ enum: ['PENDING', 'ACCEPTED', 'REJECTED', 'COMPLETED', 'CANCELLED'] })
   @IsEnum(['PENDING', 'ACCEPTED', 'REJECTED', 'COMPLETED', 'CANCELLED'])
   status: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(180)
+  estimatedMinutes?: number;
 }

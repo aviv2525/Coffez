@@ -169,6 +169,7 @@ export class OrdersService {
     userId: string,
     userRole: string,
     status: PrismaOrderStatus,
+    estimatedMinutes?: number,
   ) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -202,7 +203,12 @@ export class OrdersService {
 
     const updated = await this.prisma.order.update({
       where: { id: orderId },
-      data: { status },
+      data: {
+        status,
+        ...(status === PrismaOrderStatus.ACCEPTED && estimatedMinutes !== undefined
+          ? { estimatedMinutes }
+          : {}),
+      },
       include: { menuItem: true, buyer: true, seller: true },
     });
 
@@ -232,6 +238,7 @@ export class OrdersService {
       status: order.status,
       note: order.note,
       scheduledFor: order.scheduledFor,
+      estimatedMinutes: order.estimatedMinutes ?? null,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       menuItem: order.menuItem

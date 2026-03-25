@@ -410,6 +410,9 @@ export default function SellerSettingsPage() {
 
         {/* Navigation */}
         <div className="bg-white rounded-2xl border border-amber-200/80 p-6 space-y-4">
+          <Link href="/settings/seller/orders" className="block text-amber-800 hover:text-amber-950 font-medium">
+            → Manage incoming orders
+          </Link>
           <Link href="/settings/seller/menu" className="block text-amber-800 hover:text-amber-950 font-medium">
             → Manage menu
           </Link>

@@ -111,9 +111,10 @@ model Order {
   buyerId      String        @map("buyer_id")
   sellerId     String        @map("seller_id")
   menuItemId   String        @map("menu_item_id")
-  status       OrderStatus   @default(PENDING)
-  note         String?
-  scheduledFor DateTime?     @map("scheduled_for")
+  status           OrderStatus   @default(PENDING)
+  note             String?
+  scheduledFor     DateTime?     @map("scheduled_for")
+  estimatedMinutes Int?          @map("estimated_minutes")
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   buyer        User          @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)

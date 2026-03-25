@@ -1,92 +1,159 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Header } from '@/components/Header';
 
 type Order = {
   id: string;
-  status: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED';
   note: string | null;
-  menuItem?: { title: string; price: number };
-  seller?: { displayName: string };
-  buyer?: { fullName: string };
+  estimatedMinutes: number | null;
   createdAt: string;
+  menuItem?: { title: string; price: number };
+  seller?: { displayName: string; userId: string };
 };
- 
-type Tab = 'my' | 'incoming';
+
+const STATUS_LABEL: Record<Order['status'], string> = {
+  PENDING: 'Waiting for seller',
+  ACCEPTED: 'Accepted',
+  REJECTED: 'Rejected',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+};
+
+const STATUS_COLOR: Record<Order['status'], string> = {
+  PENDING: 'bg-amber-100 text-amber-800 border-amber-200',
+  ACCEPTED: 'bg-green-100 text-green-800 border-green-200',
+  REJECTED: 'bg-red-100 text-red-700 border-red-200',
+  COMPLETED: 'bg-stone-100 text-stone-600 border-stone-200',
+  CANCELLED: 'bg-stone-100 text-stone-500 border-stone-200',
+};
 
 export default function OrdersPage() {
-  const [tab, setTab] = useState<Tab>('my');
+  const qc = useQueryClient();
 
-  const { data: myData, isLoading: loadingMy } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['orders-my'],
     queryFn: async () => {
       const res = await apiFetch<{ data: Order[] }>('/orders/my');
       if (res.error) throw new Error(res.error);
       return res.data!;
     },
-    enabled: tab === 'my',
   });
 
-  const { data: incomingData, isLoading: loadingIncoming } = useQuery({
-    queryKey: ['orders-incoming'],
-    queryFn: async () => {
-      const res = await apiFetch<{ data: Order[] }>('/orders/incoming');
-      if (res.error) throw new Error(res.error);
-      return res.data!;
+  const cancelMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      const res = await apiFetch(`/orders/${orderId}/cancel`, { method: 'PATCH' });
+      if (res.error || res.status >= 400) throw new Error('Failed to cancel');
     },
-    enabled: tab === 'incoming',
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['orders-my'] }),
   });
 
-  const myOrders = myData?.data ?? [];
-  const incomingOrders = incomingData?.data ?? [];
-  const isLoading = tab === 'my' ? loadingMy : loadingIncoming;
+  const orders = data?.data ?? [];
+  const active = orders.filter((o) => ['PENDING', 'ACCEPTED'].includes(o.status));
+  const past = orders.filter((o) => ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(o.status));
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Orders</h1>
-        <div className="flex gap-2 border-b mb-6">
-          <button
-            onClick={() => setTab('my')}
-            className={`px-4 py-2 ${tab === 'my' ? 'border-b-2 border-amber-700 text-amber-900' : 'text-stone-600'}`}
-          >
-            My Orders
-          </button>
-          <button
-            onClick={() => setTab('incoming')}
-            className={`px-4 py-2 ${tab === 'incoming' ? 'border-b-2 border-amber-700 text-amber-900' : 'text-stone-600'}`}
-          >
-            Incoming
-          </button>
-        </div>
+      <main className="container mx-auto px-4 py-6 max-w-xl">
+        <h1 className="text-2xl font-bold text-amber-950 mb-6">My orders</h1>
+
         {isLoading ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="space-y-4">
-            {(tab === 'my' ? myOrders : incomingOrders).map((o) => (
-              <div key={o.id} className="bg-white p-4 rounded-lg border flex justify-between items-start">
-                <div>
-                  <span className="font-medium">{o.menuItem?.title ?? 'Order'}</span>
-                  <span className="ml-2 text-sm text-gray-500">#{o.id.slice(0, 8)}</span>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {tab === 'my' ? `Seller: ${o.seller?.displayName ?? '-'}` : `From: ${o.buyer?.fullName ?? '-'}`}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Status: <span className="font-medium">{o.status}</span>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500">{new Date(o.createdAt).toLocaleDateString()}</div>
-              </div>
-            ))}
-            {(tab === 'my' ? myOrders : incomingOrders).length === 0 && (
-              <p className="text-gray-500">No orders.</p>
-            )}
+          <div className="space-y-3">
+            {[1, 2].map((i) => <div key={i} className="h-24 bg-amber-100/50 rounded-2xl animate-pulse" />)}
           </div>
+        ) : orders.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-amber-200/80 p-10 text-center">
+            <p className="text-stone-500 text-sm">No orders yet.</p>
+            <Link href="/marketplace" className="mt-3 inline-block text-sm text-amber-800 hover:underline font-medium">
+              Browse sellers →
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Active orders */}
+            {active.length > 0 && (
+              <section className="mb-6">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-3">Active</h2>
+                <div className="space-y-3">
+                  {active.map((o) => (
+                    <div key={o.id} className={`bg-white rounded-2xl border-2 p-5 ${o.status === 'ACCEPTED' ? 'border-green-300/60' : 'border-amber-200'}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-amber-950">{o.menuItem?.title ?? 'Order'}</p>
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-lg border ${STATUS_COLOR[o.status]}`}>
+                              {STATUS_LABEL[o.status]}
+                            </span>
+                          </div>
+                          {o.seller && (
+                            <Link href={`/seller/${o.seller.userId}`} className="text-sm text-amber-800 hover:underline mt-0.5 block">
+                              {o.seller.displayName}
+                            </Link>
+                          )}
+                          {o.note && (
+                            <p className="text-xs text-stone-500 mt-1">Note: {o.note}</p>
+                          )}
+                          {/* Estimated time — shown when accepted */}
+                          {o.status === 'ACCEPTED' && o.estimatedMinutes && (
+                            <div className="mt-2 flex items-center gap-1.5 text-green-700 text-sm font-medium">
+                              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Ready in ~{o.estimatedMinutes} minutes
+                            </div>
+                          )}
+                          {o.status === 'ACCEPTED' && !o.estimatedMinutes && (
+                            <p className="text-sm text-green-700 font-medium mt-1">✓ Order accepted</p>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-semibold text-amber-900 text-sm">₪{o.menuItem?.price}</p>
+                          <p className="text-xs text-stone-400 mt-0.5">
+                            {new Date(o.createdAt).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                      {o.status === 'PENDING' && (
+                        <button
+                          onClick={() => cancelMutation.mutate(o.id)}
+                          disabled={cancelMutation.isPending}
+                          className="mt-3 text-xs text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors"
+                        >
+                          Cancel order
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Past orders */}
+            {past.length > 0 && (
+              <section>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-3">History</h2>
+                <div className="space-y-2">
+                  {past.map((o) => (
+                    <div key={o.id} className="bg-white rounded-xl border border-stone-200 px-4 py-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-stone-700">{o.menuItem?.title ?? 'Order'}</p>
+                        <p className="text-xs text-stone-400">
+                          {o.seller?.displayName ?? '—'} · {new Date(o.createdAt).toLocaleDateString('he-IL')}
+                        </p>
+                      </div>
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-lg border shrink-0 ${STATUS_COLOR[o.status]}`}>
+                        {STATUS_LABEL[o.status]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </main>
     </div>
