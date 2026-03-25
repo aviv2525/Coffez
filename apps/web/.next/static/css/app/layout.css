@@ -620,6 +620,9 @@ video {
 .grid {
   display: grid;
 }
+.hidden {
+  display: none;
+}
 .aspect-\[21\/9\] {
   aspect-ratio: 21/9;
 }
@@ -632,6 +635,9 @@ video {
 .h-10 {
   height: 2.5rem;
 }
+.h-14 {
+  height: 3.5rem;
+}
 .h-16 {
   height: 4rem;
 }
@@ -641,8 +647,17 @@ video {
 .h-24 {
   height: 6rem;
 }
+.h-32 {
+  height: 8rem;
+}
 .h-36 {
   height: 9rem;
+}
+.h-4 {
+  height: 1rem;
+}
+.h-6 {
+  height: 1.5rem;
 }
 .h-8 {
   height: 2rem;
@@ -653,20 +668,20 @@ video {
 .h-full {
   height: 100%;
 }
-.h-14 {
-  height: 3.5rem;
-}
-.h-6 {
-  height: 1.5rem;
-}
-.h-32 {
-  height: 8rem;
+.h-px {
+  height: 1px;
 }
 .max-h-\[280px\] {
   max-height: 280px;
 }
 .min-h-screen {
   min-height: 100vh;
+}
+.w-10 {
+  width: 2.5rem;
+}
+.w-14 {
+  width: 3.5rem;
 }
 .w-16 {
   width: 4rem;
@@ -677,29 +692,29 @@ video {
 .w-24 {
   width: 6rem;
 }
+.w-4 {
+  width: 1rem;
+}
 .w-48 {
   width: 12rem;
 }
 .w-56 {
   width: 14rem;
 }
-.w-full {
-  width: 100%;
-}
-.w-14 {
-  width: 3.5rem;
-}
 .w-6 {
   width: 1.5rem;
 }
-.w-10 {
-  width: 2.5rem;
+.w-full {
+  width: 100%;
 }
 .max-w-2xl {
   max-width: 42rem;
 }
 .max-w-md {
   max-width: 28rem;
+}
+.max-w-xs {
+  max-width: 20rem;
 }
 .flex-1 {
   flex: 1 1 0%;
@@ -1022,6 +1037,10 @@ video {
 .text-\[10px\] {
   font-size: 10px;
 }
+.text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
@@ -1111,6 +1130,10 @@ video {
   --tw-text-opacity: 1;
   color: rgb(22 163 74 / var(--tw-text-opacity, 1));
 }
+.text-green-700 {
+  --tw-text-opacity: 1;
+  color: rgb(21 128 61 / var(--tw-text-opacity, 1));
+}
 .text-indigo-600 {
   --tw-text-opacity: 1;
   color: rgb(79 70 229 / var(--tw-text-opacity, 1));
@@ -1138,6 +1161,10 @@ video {
 .text-stone-700 {
   --tw-text-opacity: 1;
   color: rgb(68 64 60 / var(--tw-text-opacity, 1));
+}
+.text-stone-800 {
+  --tw-text-opacity: 1;
+  color: rgb(41 37 36 / var(--tw-text-opacity, 1));
 }
 .text-stone-900 {
   --tw-text-opacity: 1;
@@ -1244,6 +1271,11 @@ body {
   color: rgb(17 24 39 / var(--tw-text-opacity, 1));
 }
 
+.hover\:text-stone-700:hover {
+  --tw-text-opacity: 1;
+  color: rgb(68 64 60 / var(--tw-text-opacity, 1));
+}
+
 .hover\:underline:hover {
   text-decoration-line: underline;
 }
@@ -1263,6 +1295,11 @@ body {
 .focus\:border-amber-400:focus {
   --tw-border-opacity: 1;
   border-color: rgb(251 191 36 / var(--tw-border-opacity, 1));
+}
+
+.focus\:outline-none:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
 }
 
 .focus\:ring-2:focus {

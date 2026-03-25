@@ -1,7 +1,4 @@
 {
-  "/marketplace/page": "app/marketplace/page.js",
-  "/seller/[id]/page": "app/seller/[id]/page.js",
   "/page": "app/page.js",
-  "/settings/seller/page": "app/settings/seller/page.js",
-  "/settings/seller/menu/page": "app/settings/seller/menu/page.js"
+  "/settings/seller/page": "app/settings/seller/page.js"
 }
