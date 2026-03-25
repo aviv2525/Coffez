@@ -260,7 +260,7 @@ export default function SellerPage() {
               )}
               {seller.openingHours && (
                 <div>
-                  <h3 className="text-[10px] font-semibold uppercase tracking-wider text-amber-700">When they're open</h3>
+                  <h3 className="text-[10px] font-semibold uppercase tracking-wider text-amber-700">When they&apos;re open</h3>
                   <p className="mt-2 text-stone-700 whitespace-pre-line">{seller.openingHours}</p>
                 </div>
               )}
