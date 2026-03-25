@@ -34,6 +34,7 @@ export class SellersService {
             orderBy: { sortOrder: 'asc' },
             select: { id: true, type: true, url: true, thumbnailUrl: true },
           },
+          reviews: { select: { rating: true } },
         },
       }),
       this.prisma.sellerProfile.count({ where }),
@@ -114,6 +115,10 @@ export class SellersService {
 
   private toPublicSeller(seller: any) {
     const firstMedia = seller.media?.[0];
+    const reviewCount = seller.reviews?.length ?? 0;
+    const avgRating = reviewCount > 0
+      ? Math.round((seller.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount) * 10) / 10
+      : null;
     return {
       userId: seller.userId,
       displayName: seller.displayName,
@@ -126,6 +131,8 @@ export class SellersService {
       machineType: seller.machineType ?? null,
       openingHours: seller.openingHours ?? null,
       coverMedia: firstMedia ? { id: firstMedia.id, type: firstMedia.type, url: firstMedia.url, thumbnailUrl: firstMedia.thumbnailUrl } : null,
+      avgRating,
+      reviewCount,
       createdAt: seller.createdAt,
       updatedAt: seller.updatedAt,
       user: seller.user ? { id: seller.user.id, fullName: seller.user.fullName } : undefined,

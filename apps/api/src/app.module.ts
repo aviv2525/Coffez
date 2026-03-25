@@ -10,6 +10,7 @@ import { MediaModule } from './media/media.module';
 import { OrdersModule } from './orders/orders.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PushModule } from './push/push.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -36,6 +37,7 @@ import { HealthController } from './health.controller';
     OrdersModule,
     NotificationsModule,
     PushModule,
+    ReviewsModule,
   ],
   controllers: [HealthController],
 })

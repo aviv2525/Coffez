@@ -22,6 +22,7 @@ model User {
   pushSubscriptions       PushSubscription[]
   refreshTokens           RefreshToken[]
   sellerProfile           SellerProfile?
+  reviews                 Review[]
 }
 
 model RefreshToken {
@@ -70,6 +71,7 @@ model SellerProfile {
   menu         MenuItem[]
   orders       Order[]        @relation("SellerOrders")
   media        ProfileMedia[]
+  reviews      Review[]
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -126,6 +128,21 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, endpoint])
+}
+
+model Review {
+  id        String        @id @default(uuid())
+  sellerId  String        @map("seller_id")
+  buyerId   String        @map("buyer_id")
+  rating    Int
+  comment   String?
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  seller    SellerProfile @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
+  buyer     User          @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@unique([sellerId, buyerId])
 }
 
 enum UserRole {

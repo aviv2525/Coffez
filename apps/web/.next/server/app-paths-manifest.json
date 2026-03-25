@@ -1,9 +1,7 @@
 {
-  "/page": "app/page.js",
-  "/settings/seller/menu/page": "app/settings/seller/menu/page.js",
-  "/seller/[id]/page": "app/seller/[id]/page.js",
-  "/settings/seller/page": "app/settings/seller/page.js",
-  "/settings/seller/media/page": "app/settings/seller/media/page.js",
   "/marketplace/page": "app/marketplace/page.js",
-  "/orders/page": "app/orders/page.js"
+  "/settings/seller/page": "app/settings/seller/page.js",
+  "/seller/[id]/page": "app/seller/[id]/page.js",
+  "/orders/page": "app/orders/page.js",
+  "/seller/[id]/order/page": "app/seller/[id]/order/page.js"
 }

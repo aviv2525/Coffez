@@ -173,7 +173,7 @@ export default function SellerMediaPage() {
 
         {atLimit && (
           <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            You've reached the maximum of {MAX_ITEMS} photos.
+            You&apos;ve reached the maximum of {MAX_ITEMS} photos.
           </div>
         )}
 
