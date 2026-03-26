@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import { OnlineToggle } from '@/components/OnlineToggle';
+import { Toast } from '@/components/Toast';
 
 type Order = {
   id: string;
@@ -40,12 +42,25 @@ export default function SellerOrdersPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [etaMap, setEtaMap] = useState<Record<string, number>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const prevPendingCount = useRef(0);
 
   async function load() {
-    const res = await apiFetch<{ data: Order[] }>('/orders/incoming');
-    if (res.status === 401) { router.replace('/auth/login'); return; }
-    if (res.error || !res.data) { setLoadState('error'); return; }
-    setOrders(res.data.data);
+    const [ordersRes, profileRes] = await Promise.all([
+      apiFetch<{ data: Order[] }>('/orders/incoming'),
+      apiFetch<{ isOnline: boolean }>('/sellers/me'),
+    ]);
+    if (ordersRes.status === 401) { router.replace('/auth/login'); return; }
+    if (ordersRes.error || !ordersRes.data) { setLoadState('error'); return; }
+    const incoming = ordersRes.data.data;
+    const newPending = incoming.filter((o) => o.status === 'PENDING').length;
+    if (newPending > prevPendingCount.current && prevPendingCount.current >= 0 && loadState === 'ready') {
+      setToast(`New order arrived!`);
+    }
+    prevPendingCount.current = newPending;
+    setOrders(incoming);
+    if (profileRes.data) setIsOnline(profileRes.data.isOnline ?? false);
     setLoadState('ready');
   }
 
@@ -113,15 +128,18 @@ export default function SellerOrdersPage() {
           <div>
             <h1 className="text-2xl font-bold text-amber-950">Incoming orders</h1>
             {pending.length > 0 && (
-              <p className="text-sm text-amber-700 mt-0.5">{pending.length} order{pending.length !== 1 ? 's' : ''} waiting for your response</p>
+              <p className="text-sm text-amber-700 mt-0.5">{pending.length} order{pending.length !== 1 ? 's' : ''} waiting</p>
             )}
           </div>
-          <button
-            onClick={() => { setLoadState('loading'); load(); }}
-            className="text-sm text-amber-800 hover:text-amber-950 border border-amber-200 rounded-lg px-3 py-1.5 hover:bg-amber-50 transition-colors"
-          >
-            Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <OnlineToggle initialValue={isOnline} />
+            <button
+              onClick={() => { setLoadState('loading'); load(); }}
+              className="text-sm text-amber-800 hover:text-amber-950 border border-amber-200 rounded-lg px-3 py-1.5 hover:bg-amber-50 transition-colors"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
 
         {errorMsg && (
@@ -252,6 +270,8 @@ export default function SellerOrdersPage() {
           </div>
         )}
       </main>
+
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }

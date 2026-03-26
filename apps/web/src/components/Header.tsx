@@ -26,7 +26,7 @@ export function Header() {
                 Orders
               </Link>
               <Link href="/settings/seller" className="text-amber-900/80 hover:text-amber-950">
-                Seller
+                My Shop
               </Link>
             </>
           )}

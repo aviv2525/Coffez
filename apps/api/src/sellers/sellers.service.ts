@@ -115,6 +115,13 @@ export class SellersService {
     });
   }
 
+  async setOnline(userId: string, isOnline: boolean) {
+    return this.prisma.sellerProfile.update({
+      where: { userId },
+      data: { isOnline },
+    });
+  }
+
   async ensureOwnership(ownerId: string, sellerId: string) {
     if (ownerId !== sellerId) throw new ForbiddenException('Not allowed to modify this seller');
   }
@@ -139,6 +146,7 @@ export class SellersService {
       lat: seller.lat ?? null,
       lng: seller.lng ?? null,
       pickupDetails: seller.pickupDetails ?? null,
+      isOnline: seller.isOnline ?? false,
       coverMedia: firstMedia ? { id: firstMedia.id, type: firstMedia.type, url: firstMedia.url, thumbnailUrl: firstMedia.thumbnailUrl } : null,
       avgRating,
       reviewCount,

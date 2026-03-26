@@ -21,20 +21,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/seller/[id]/page.js"
     ],
-    "/settings/seller/page": [
+    "/seller/[id]/order/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/settings/seller/page.js"
+      "static/chunks/app/seller/[id]/order/page.js"
     ],
     "/orders/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/orders/page.js"
     ],
-    "/seller/[id]/order/page": [
+    "/settings/seller/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/seller/[id]/order/page.js"
+      "static/chunks/app/settings/seller/page.js"
     ],
     "/auth/login/page": [
       "static/chunks/webpack.js",
@@ -45,16 +45,6 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/settings/seller/orders/page.js"
-    ],
-    "/settings/seller/menu/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/settings/seller/menu/page.js"
-    ],
-    "/settings/seller/media/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/settings/seller/media/page.js"
     ]
   }
 }

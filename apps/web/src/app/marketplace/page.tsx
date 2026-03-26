@@ -18,6 +18,7 @@ type Seller = {
   machineType?: string | null;
   openingHours?: string | null;
   pickupDetails?: string | null;
+  isOnline?: boolean;
   coverMedia?: CoverMedia;
   avgRating?: number | null;
   reviewCount?: number;
@@ -63,7 +64,15 @@ function SellerCard({ s }: { s: Seller }) {
       </div>
       <div className="p-4 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-2">
-          <h2 className="text-lg font-semibold text-stone-900">{s.displayName}</h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-lg font-semibold text-stone-900">{s.displayName}</h2>
+            {s.isOnline && (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                Online
+              </span>
+            )}
+          </div>
           {s.avgRating && (
             <div className="flex items-center gap-1 shrink-0">
               <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">

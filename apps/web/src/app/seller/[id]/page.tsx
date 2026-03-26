@@ -38,6 +38,7 @@ type Seller = {
   lat?: number | null;
   lng?: number | null;
   pickupDetails?: string | null;
+  isOnline?: boolean;
   coverMedia?: { id: string; type: string; url: string; thumbnailUrl: string | null } | null;
   media?: MediaItem[];
 };
@@ -62,8 +63,8 @@ type CurrentUser = { id: string; fullName: string };
 function Stars({ rating, max = 5 }: { rating: number; max?: number }) {
   return (
     <span className="inline-flex gap-0.5">
-      {Array.from({ length: max }).map((_, i) => (
-        <svg key={i} className={`w-4 h-4 ${i < rating ? 'text-amber-400' : 'text-stone-200'}`} fill="currentColor" viewBox="0 0 20 20">
+      {Array.from({ length: max }).map((_, idx) => (
+        <svg key={idx} className={`w-4 h-4 ${idx < rating ? 'text-amber-400' : 'text-stone-200'}`} fill="currentColor" viewBox="0 0 20 20">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
         </svg>
       ))}
@@ -309,7 +310,15 @@ export default function SellerPage() {
             {/* Name + rating row */}
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-amber-950">{seller.displayName}</h1>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-2xl md:text-3xl font-bold text-amber-950">{seller.displayName}</h1>
+                  {seller.isOnline && (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                      Online now
+                    </span>
+                  )}
+                </div>
                 {seller.locationText && (
                   <p className="text-amber-800/90 mt-1 text-sm md:text-base">📍 {seller.locationText}</p>
                 )}

@@ -46,6 +46,13 @@ export class SellersController {
     return this.sellers.update(user.id, dto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/online')
+  setOnline(@CurrentUser() user: CurrentUserPayload, @Body('isOnline') isOnline: boolean) {
+    return this.sellers.setOnline(user.id, isOnline);
+  }
+
   @Get(':id')
   getById(@Param('id') id: string) {
     return this.sellers.getById(id);
