@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser, CurrentUserPayload } from '../auth/decorators/current-user.decorator';
@@ -14,5 +14,10 @@ export class UsersController {
   @Get('me')
   me(@CurrentUser() user: CurrentUserPayload) {
     return this.users.findById(user.id);
+  }
+
+  @Patch('me')
+  updateMe(@CurrentUser() user: CurrentUserPayload, @Body('fullName') fullName: string) {
+    return this.users.updateName(user.id, fullName);
   }
 }

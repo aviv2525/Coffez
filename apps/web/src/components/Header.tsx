@@ -4,11 +4,7 @@ import Link from 'next/link';
 import { useAuth } from './AuthProvider';
 
 export function Header() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-  };
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   return (
     <header className="border-b border-amber-200/60 bg-white">
@@ -20,27 +16,13 @@ export function Header() {
           <Link href="/marketplace" className="text-amber-900/80 hover:text-amber-950">
             Marketplace
           </Link>
-          {isAuthenticated && (
-            <>
-              <Link href="/orders" className="text-amber-900/80 hover:text-amber-950">
-                Orders
-              </Link>
-              <Link href="/settings/seller" className="text-amber-900/80 hover:text-amber-950">
-                My Shop
-              </Link>
-            </>
-          )}
-          {isLoading ? (
+{isLoading ? (
             <div className="text-amber-900/60">Loading...</div>
           ) : isAuthenticated && user ? (
             <>
-              <span className="text-amber-900">שלום {user.fullName}</span>
-              <button
-                onClick={handleLogout}
-                className="text-amber-900/80 hover:text-amber-950 underline"
-              >
-                Logout
-              </button>
+              <Link href="/profile" className="text-amber-900 hover:text-amber-950 font-medium">
+                {user.fullName}
+              </Link>
             </>
           ) : (
             <>

@@ -37,7 +37,7 @@ export class ReviewsService {
     }
 
     const order = await this.prisma.order.findFirst({
-      where: { buyerId, sellerId },
+      where: { buyerId, sellerId, status: 'COMPLETED' },
     });
     if (!order) {
       throw new ForbiddenException('You can only review sellers you have ordered from');

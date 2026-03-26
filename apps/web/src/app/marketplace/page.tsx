@@ -2,8 +2,15 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Header } from '@/components/Header';
+
+const SellerMap = dynamic(
+  () => import('@/components/SellerMap').then((m) => m.SellerMap),
+  { ssr: false, loading: () => <div className="w-full h-full bg-amber-50 rounded-2xl animate-pulse" /> }
+);
 
 type CoverMedia = { id: string; type: string; url: string; thumbnailUrl: string | null } | null;
 type Seller = {
@@ -13,6 +20,8 @@ type Seller = {
   categories: string[];
   locationText: string | null;
   avatarUrl: string | null;
+  lat: number | null;
+  lng: number | null;
   beans?: string[];
   drinkTypes?: string[];
   machineType?: string | null;
@@ -20,136 +29,117 @@ type Seller = {
   pickupDetails?: string | null;
   isOnline?: boolean;
   coverMedia?: CoverMedia;
-  avgRating?: number | null;
+  avgRating?: number | null | undefined;
   reviewCount?: number;
-  user?: { id: string; fullName: string };
 };
 
-type ListResult = { data: Seller[]; total: number; page: number; limit: number; totalPages: number };
+type ListResult = { data: Seller[]; total: number };
 
-function SellerCard({ s }: { s: Seller }) {
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function SellerCard({
+  s,
+  distance,
+  active,
+  onHover,
+}: {
+  s: Seller;
+  distance: number | null;
+  active: boolean;
+  onHover: (id: string | null) => void;
+}) {
   const coverUrl = s.coverMedia?.url ?? s.avatarUrl ?? null;
-  const hasBeans = (s.beans ?? []).length > 0;
-  const hasDrinks = (s.drinkTypes ?? []).length > 0;
-  const hasHours = !!s.openingHours?.trim();
 
   return (
-    <article className="bg-white rounded-2xl border border-amber-200/80 shadow-sm hover:shadow-md hover:border-amber-300/60 transition-all overflow-hidden flex flex-col">
-      {/* Trust: their space / setup preview */}
-      <div className="aspect-[4/3] bg-amber-50 relative overflow-hidden">
+    <article
+      id={`seller-${s.userId}`}
+      onMouseEnter={() => onHover(s.userId)}
+      onMouseLeave={() => onHover(null)}
+      className={`bg-white rounded-2xl border shadow-sm transition-all overflow-hidden flex flex-col ${
+        active ? 'border-amber-500 shadow-amber-200 ring-2 ring-amber-400/30' : 'border-amber-200/80 hover:shadow-md hover:border-amber-300/60'
+      }`}
+    >
+      <div className="aspect-[16/9] bg-amber-50 relative overflow-hidden">
         {coverUrl ? (
           s.coverMedia?.type === 'VIDEO' ? (
-            <video
-              src={coverUrl}
-              className="w-full h-full object-cover"
-              muted
-              playsInline
-              preload="metadata"
-            />
+            <video src={coverUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" />
           ) : (
-            <img
-              src={coverUrl}
-              alt=""
-              className="w-full h-full object-cover"
-            />
+            <img src={coverUrl} alt="" className="w-full h-full object-cover" />
           )
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-amber-300">
-            <svg className="w-20 h-20" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-              <path d="M2 21h18v-2H2v2zm0-4h18v-2H2v2zm0-6h18V9H2v2zm0-6v2h18V5H2z"/>
-              <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" opacity={0.5}/>
+          <div className="w-full h-full flex items-center justify-center">
+            <svg className="w-14 h-14 text-amber-200" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3z"/>
             </svg>
           </div>
         )}
+        {s.isOnline && (
+          <span className="absolute top-2 left-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-white/90 border border-green-200 px-2 py-0.5 rounded-full shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            Online
+          </span>
+        )}
       </div>
+
       <div className="p-4 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-lg font-semibold text-stone-900">{s.displayName}</h2>
-            {s.isOnline && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                Online
-              </span>
+          <h2 className="text-base font-semibold text-stone-900 leading-tight">{s.displayName}</h2>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            {s.avgRating && (
+              <div className="flex items-center gap-0.5">
+                <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="text-sm font-semibold text-stone-800">{s.avgRating}</span>
+                <span className="text-xs text-stone-400">({s.reviewCount})</span>
+              </div>
+            )}
+            {distance != null && (
+              <span className="text-xs text-stone-400">{distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}</span>
             )}
           </div>
-          {s.avgRating && (
-            <div className="flex items-center gap-1 shrink-0">
-              <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              <span className="text-sm font-semibold text-stone-800">{s.avgRating}</span>
-              <span className="text-xs text-stone-400">({s.reviewCount})</span>
-            </div>
-          )}
         </div>
-        {s.locationText && (
-          <p className="text-sm text-amber-800/80 mt-0.5">📍 {s.locationText}</p>
-        )}
-        {s.pickupDetails && (
-          <p className="text-xs text-stone-500 mt-0.5">🚪 {s.pickupDetails}</p>
-        )}
-        {s.bio && (
-          <p className="text-sm text-stone-600 mt-2 line-clamp-2">{s.bio}</p>
-        )}
 
-        {/* Beans in stock — what you can get */}
-        {hasBeans && (
-          <div className="mt-3">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700/90">Beans in stock</span>
-            <div className="mt-1 flex flex-wrap gap-1">
-              {(s.beans ?? []).slice(0, 4).map((b) => (
-                <span key={b} className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-900 border border-amber-200/80">
-                  {b}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        {s.locationText && <p className="text-xs text-amber-800/80 mt-1">📍 {s.locationText}</p>}
+        {s.bio && <p className="text-sm text-stone-500 mt-1.5 line-clamp-2">{s.bio}</p>}
 
-        {/* Drinks they make */}
-        {hasDrinks && (
-          <div className="mt-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-500">Drinks they make</span>
-            <div className="mt-1 flex flex-wrap gap-1">
-              {(s.drinkTypes ?? []).slice(0, 4).map((d) => (
-                <span key={d} className="inline-flex px-2 py-0.5 rounded-md text-xs bg-stone-100 text-stone-700 border border-stone-200/80">
-                  {d}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Equipment */}
-        {s.machineType && (
-          <p className="text-xs text-stone-500 mt-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">Equipment</span>
-            <span className="block mt-0.5 text-stone-600">{s.machineType}</span>
-          </p>
-        )}
-
-        {/* When they're available */}
-        {hasHours && (
-          <p className="text-xs text-stone-600 mt-2 pt-2 border-t border-amber-100">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/80">Open</span>
-            <span className="block mt-0.5">{s.openingHours}</span>
-          </p>
-        )}
-
-        <div className="mt-4 flex gap-2 pt-3 border-t border-stone-100">
+        <div className="pt-3 flex gap-2 border-t border-stone-100 mt-3">
           <Link
             href={`/seller/${s.userId}`}
-            className="flex-1 text-center py-2.5 px-3 rounded-xl text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 transition-colors"
+            className="flex-1 text-center py-2 px-3 rounded-xl text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 transition-colors"
           >
             View profile
           </Link>
           <Link
             href={`/seller/${s.userId}#menu`}
-            className="flex-1 text-center py-2.5 px-3 rounded-xl text-sm font-medium border border-amber-300 text-amber-900 hover:bg-amber-50 transition-colors"
+            className="flex-1 text-center py-2 px-3 rounded-xl text-sm font-medium border border-amber-300 text-amber-900 hover:bg-amber-50 transition-colors"
           >
             See menu
           </Link>
+          {s.lat != null && s.lng != null && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open in Google Maps"
+              className="flex items-center justify-center w-10 shrink-0 rounded-xl border border-stone-200 text-stone-500 hover:bg-stone-50 hover:text-stone-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </a>
+          )}
         </div>
       </div>
     </article>
@@ -157,29 +147,76 @@ function SellerCard({ s }: { s: Seller }) {
 }
 
 export default function MarketplacePage() {
+  const [view, setView] = useState<'split' | 'list' | 'map'>('list');
+  const [minRating, setMinRating] = useState(0);
+  const [maxDistanceKm, setMaxDistanceKm] = useState<number | null>(null);
+  const [onlineOnly, setOnlineOnly] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [activeSellerId, setActiveSellerId] = useState<string | null>(null);
+
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['sellers'],
     queryFn: async () => {
-      const res = await apiFetch<ListResult>('/sellers?page=1&limit=50');
-      if (res.error || !res.data) throw new Error(res.error || 'Failed to load');
+      const res = await apiFetch<ListResult>('/sellers?page=1&limit=100');
+      if (res.error || !res.data) throw new Error(res.error || 'Failed');
       return res.data;
     },
   });
+
+  const sellers = data?.data ?? [];
+
+  // Compute distance for each seller
+  const sellersWithDistance = useMemo(() => {
+    return sellers.map((s) => ({
+      ...s,
+      distance:
+        userLocation && s.lat != null && s.lng != null
+          ? haversineKm(userLocation.lat, userLocation.lng, s.lat, s.lng)
+          : null,
+    }));
+  }, [sellers, userLocation]);
+
+  // Apply filters
+  const filtered = useMemo(() => {
+    return sellersWithDistance
+      .filter((s) => !onlineOnly || s.isOnline)
+      .filter((s) => !minRating || (s.avgRating ?? 0) >= minRating)
+      .filter((s) => maxDistanceKm == null || s.distance == null || s.distance <= maxDistanceKm)
+      .sort((a, b) => {
+        if (a.distance != null && b.distance != null) return a.distance - b.distance;
+        return 0;
+      });
+  }, [sellersWithDistance, onlineOnly, minRating, maxDistanceKm]);
+
+  function requestLocation() {
+    if (!navigator.geolocation) return;
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocationLoading(false);
+      },
+      () => setLocationLoading(false)
+    );
+  }
+
+  // Scroll to active card in list
+  useEffect(() => {
+    if (activeSellerId) {
+      const el = document.getElementById(`seller-${activeSellerId}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [activeSellerId]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-amber-50/40">
         <Header />
-        <main className="container mx-auto px-4 py-12">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-amber-200/50 rounded w-56" />
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-96 bg-amber-100/50 rounded-2xl" />
-              ))}
-            </div>
-          </div>
-        </main>
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-pulse h-8 w-48 bg-amber-100 rounded" />
+        </div>
       </div>
     );
   }
@@ -187,37 +224,185 @@ export default function MarketplacePage() {
   if (error) {
     return (
       <div className="min-h-screen bg-amber-50/40 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-amber-900">Error loading sellers.</p>
-          <Link href="/marketplace" className="mt-2 inline-block text-amber-800 hover:underline">Try again</Link>
-        </div>
+        <p className="text-amber-900">Error loading sellers. <Link href="/marketplace" className="underline">Try again</Link></p>
       </div>
     );
   }
 
-  const sellers = data?.data ?? [];
+  const showList = view === 'list' || view === 'split';
+  const showMap = view === 'map' || view === 'split';
 
   return (
-    <div className="min-h-screen bg-amber-50/40">
+    <div className="min-h-screen bg-amber-50/40 flex flex-col">
       <Header />
-      <main className="container mx-auto px-4 py-8 md:py-12">
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-amber-950">Home coffee sellers</h1>
-          <p className="text-amber-900/80 mt-1">
-            See who has which beans, what they brew, and when they’re open. Pick a seller to view their menu and order.
-          </p>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {sellers.map((s) => (
-            <SellerCard key={s.userId} s={s} />
-          ))}
-        </div>
-        {sellers.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-amber-200/80">
-            <p className="text-amber-900/80">No home coffee sellers yet. Check back soon.</p>
+
+      {/* Filters bar */}
+      <div className="sticky top-0 z-10 bg-white border-b border-amber-200/60 px-4 py-3">
+        <div className="container mx-auto flex flex-wrap items-center gap-3">
+
+          {/* Rating filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-stone-500">Min rating</span>
+            <div className="flex gap-1">
+              {[0, 1, 2, 3, 4, 5].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setMinRating(r)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                    minRating === r
+                      ? 'bg-amber-900 text-amber-50 border-amber-900'
+                      : 'border-amber-200 text-amber-900 hover:bg-amber-50'
+                  }`}
+                >
+                  {r === 0 ? 'All' : `${r}★`}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
-      </main>
+
+          <div className="w-px h-5 bg-stone-200" />
+
+          {/* Distance filter */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={userLocation ? undefined : requestLocation}
+              disabled={locationLoading}
+              className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors ${
+                userLocation ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-amber-200 text-amber-900 hover:bg-amber-50'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {locationLoading ? 'Locating…' : userLocation ? 'Location on' : 'Use my location'}
+            </button>
+            {userLocation && (
+              <div className="flex gap-1">
+                {[null, 0.5, 1, 2, 5].map((d) => (
+                  <button
+                    key={d ?? 'all'}
+                    onClick={() => setMaxDistanceKm(d)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                      maxDistanceKm === d
+                        ? 'bg-amber-900 text-amber-50 border-amber-900'
+                        : 'border-amber-200 text-amber-900 hover:bg-amber-50'
+                    }`}
+                  >
+                    {d == null ? 'Any' : d < 1 ? `${d * 1000}m` : `${d}km`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="w-px h-5 bg-stone-200" />
+
+          {/* Online only */}
+          <button
+            onClick={() => setOnlineOnly((v) => !v)}
+            className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors ${
+              onlineOnly ? 'bg-green-700 text-white border-green-700' : 'border-amber-200 text-amber-900 hover:bg-amber-50'
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${onlineOnly ? 'bg-green-300 animate-pulse' : 'bg-stone-300'}`} />
+            Online now
+          </button>
+
+          <div className="ml-auto flex gap-1">
+            {(['split', 'list', 'map'] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                title={v}
+                className={`p-1.5 rounded-lg border transition-colors ${
+                  view === v ? 'bg-amber-900 text-amber-50 border-amber-900' : 'border-amber-200 text-amber-700 hover:bg-amber-50'
+                }`}
+              >
+                {v === 'list' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+                {v === 'map' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                )}
+                {v === 'split' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Results count */}
+      <div className="container mx-auto px-4 py-2">
+        <p className="text-xs text-stone-400">
+          {filtered.length} seller{filtered.length !== 1 ? 's' : ''}
+          {filtered.length !== sellers.length && ` of ${sellers.length}`}
+        </p>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 container mx-auto px-4 pb-6" style={{ minHeight: 0 }}>
+        <div className={`flex gap-4 ${view === 'split' ? 'h-[calc(100vh-180px)]' : ''}`}>
+
+          {/* List panel */}
+          {showList && (
+            <div className={`${view === 'split' ? 'flex-1 overflow-y-auto' : 'w-full'} space-y-4`}>
+              {filtered.length === 0 && (
+                <div className="bg-white rounded-2xl border border-amber-200/80 p-10 text-center">
+                  <p className="text-stone-500">No sellers match your filters.</p>
+                </div>
+              )}
+              {view === 'list' ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filtered.map((s) => (
+                    <SellerCard
+                      key={s.userId}
+                      s={s}
+                      distance={s.distance}
+                      active={activeSellerId === s.userId}
+                      onHover={setActiveSellerId}
+                    />
+                  ))}
+                </div>
+              ) : (
+                filtered.map((s) => (
+                  <SellerCard
+                    key={s.userId}
+                    s={s}
+                    distance={s.distance}
+                    active={activeSellerId === s.userId}
+                    onHover={setActiveSellerId}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Map panel */}
+          {showMap && (
+            <div className={`${view === 'split' ? 'w-72 shrink-0' : 'h-[calc(100vh-180px)] w-full'} rounded-2xl overflow-hidden`}>
+              <SellerMap
+                sellers={filtered}
+                userLocation={userLocation}
+                activeSellerId={activeSellerId}
+                onSelectSeller={(id) => {
+                  setActiveSellerId(id);
+                  const el = document.getElementById(`seller-${id}`);
+                  el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -12,11 +12,14 @@
     "@orderbridge/shared": "workspace:*",
     "@tanstack/react-query": "^5.17.0",
     "dexie": "^3.2.4",
+    "leaflet": "^1.9.4",
     "next": "14.0.4",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-leaflet": "^4.2.1"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.21",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",

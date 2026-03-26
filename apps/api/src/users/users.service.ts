@@ -22,6 +22,14 @@ export class UsersService {
     return user;
   }
 
+  async updateName(id: string, fullName: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { fullName },
+      select: { id: true, email: true, fullName: true, role: true, createdAt: true },
+    });
+  }
+
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email: email.toLowerCase() },
