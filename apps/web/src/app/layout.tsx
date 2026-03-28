@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { Providers } from '@/components/Providers';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { InstallBanner } from '@/components/InstallBanner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({
         <Providers>
           <OfflineBanner />
           {children}
+          <InstallBanner />
         </Providers>
         <Script id="sw-register" strategy="afterInteractive">{`
           if ('serviceWorker' in navigator) {
