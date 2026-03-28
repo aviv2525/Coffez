@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next';
-import Script from 'next/script';
 import { Providers } from '@/components/Providers';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { InstallBanner } from '@/components/InstallBanner';
+import { PWAProvider } from '@/components/PWAProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -35,15 +35,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
+          <PWAProvider />
           <OfflineBanner />
           {children}
           <InstallBanner />
         </Providers>
-        <Script id="sw-register" strategy="afterInteractive">{`
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js');
-          }
-        `}</Script>
       </body>
     </html>
   );
