@@ -148,6 +148,7 @@ function SellerCard({
 
 export default function MarketplacePage() {
   const [view, setView] = useState<'split' | 'list' | 'map'>('list');
+  const [search, setSearch] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [maxDistanceKm, setMaxDistanceKm] = useState<number | null>(null);
   const [onlineOnly, setOnlineOnly] = useState(false);
@@ -165,7 +166,7 @@ export default function MarketplacePage() {
     },
   });
 
-  const sellers = data?.data ?? [];
+  const sellers = useMemo(() => data?.data ?? [], [data]);
 
   // Compute distance for each seller
   const sellersWithDistance = useMemo(() => {
@@ -181,6 +182,7 @@ export default function MarketplacePage() {
   // Apply filters
   const filtered = useMemo(() => {
     return sellersWithDistance
+      .filter((s) => !search || s.displayName.toLowerCase().includes(search.toLowerCase()) || s.locationText?.toLowerCase().includes(search.toLowerCase()))
       .filter((s) => !onlineOnly || s.isOnline)
       .filter((s) => !minRating || (s.avgRating ?? 0) >= minRating)
       .filter((s) => maxDistanceKm == null || s.distance == null || s.distance <= maxDistanceKm)
@@ -188,7 +190,7 @@ export default function MarketplacePage() {
         if (a.distance != null && b.distance != null) return a.distance - b.distance;
         return 0;
       });
-  }, [sellersWithDistance, onlineOnly, minRating, maxDistanceKm]);
+  }, [sellersWithDistance, search, onlineOnly, minRating, maxDistanceKm]);
 
   function requestLocation() {
     if (!navigator.geolocation) return;
@@ -239,6 +241,29 @@ export default function MarketplacePage() {
       {/* Filters bar */}
       <div className="sticky top-0 z-10 bg-white border-b border-amber-200/60 px-4 py-3">
         <div className="container mx-auto flex flex-wrap items-center gap-3">
+
+          {/* Search */}
+          <div className="relative">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search sellers…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 pr-3 py-1 rounded-lg border border-amber-200 text-sm text-stone-800 placeholder:text-stone-400 outline-none focus:border-amber-400 w-44"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          <div className="w-px h-5 bg-stone-200" />
 
           {/* Rating filter */}
           <div className="flex items-center gap-2">

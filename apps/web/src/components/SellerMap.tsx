@@ -33,7 +33,7 @@ type Seller = {
   locationText: string | null;
   lat: number | null;
   lng: number | null;
-  avgRating: number | null;
+  avgRating?: number | null;
   reviewCount?: number;
   isOnline?: boolean;
 };
