@@ -9,6 +9,7 @@ import { apiFetch } from '@/lib/api';
 type MenuItem = {
   id: string;
   title: string;
+  category: string;
   description: string | null;
   price: number;
   imageUrl: string | null;
@@ -462,40 +463,56 @@ export default function SellerPage() {
               <div className="bg-white rounded-xl border border-amber-200/80 p-8 text-center text-stone-500 text-sm">
                 No menu items yet.
               </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {menu.map((item) => (
-                  <div key={item.id} className="bg-white rounded-xl border border-amber-200/80 shadow-sm flex flex-col overflow-hidden">
-                    {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.title} className="w-full h-36 object-cover" />
-                    ) : (
-                      <div className="w-full h-36 bg-amber-50 flex items-center justify-center text-amber-200 border-b border-amber-100">
-                        <svg className="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M7 3a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2v2a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-1a3 3 0 0 0-3-3h-1V7a4 4 0 0 0-4-4H7zm0 2h8a2 2 0 0 1 2 2v6h1a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
-                        </svg>
-                      </div>
-                    )}
-                    <div className="p-4 flex flex-col flex-1">
-                      <div className="flex justify-between items-start gap-2">
-                        <h3 className="font-semibold text-amber-950 text-sm">{item.title}</h3>
-                        <span className="text-amber-800 font-semibold text-sm whitespace-nowrap">₪{item.price}</span>
-                      </div>
-                      {item.description && <p className="text-xs text-stone-500 mt-1 line-clamp-2">{item.description}</p>}
-                      <div className="mt-3 flex-1 flex items-end">
-                        {item.isAvailable ? (
-                          <Link href={`/seller/${id}/order?item=${item.id}`}
-                            className="w-full text-center py-2.5 rounded-lg text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 transition-colors active:scale-95">
-                            Order
-                          </Link>
-                        ) : (
-                          <span className="text-stone-400 text-sm">Unavailable</span>
-                        )}
+            ) : (() => {
+              const grouped = menu.reduce<Record<string, MenuItem[]>>((acc, item) => {
+                const cat = item.category || 'General';
+                if (!acc[cat]) acc[cat] = [];
+                acc[cat].push(item);
+                return acc;
+              }, {});
+              const categories = Object.keys(grouped);
+              return (
+                <div className="space-y-6">
+                  {categories.map((cat) => (
+                    <div key={cat}>
+                      <h3 className="text-sm font-semibold text-amber-800 uppercase tracking-wider mb-3">{cat}</h3>
+                      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+                        {grouped[cat].map((item) => (
+                          <div key={item.id} className="bg-white rounded-xl border border-amber-200/80 shadow-sm flex flex-col overflow-hidden shrink-0 w-52 snap-start">
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt={item.title} className="w-full h-32 object-cover" />
+                            ) : (
+                              <div className="w-full h-32 bg-amber-50 flex items-center justify-center text-amber-200 border-b border-amber-100">
+                                <svg className="w-9 h-9" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M7 3a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2v2a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-1a3 3 0 0 0-3-3h-1V7a4 4 0 0 0-4-4H7zm0 2h8a2 2 0 0 1 2 2v6h1a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+                                </svg>
+                              </div>
+                            )}
+                            <div className="p-3 flex flex-col flex-1">
+                              <div className="flex justify-between items-start gap-1">
+                                <h4 className="font-semibold text-amber-950 text-sm leading-tight">{item.title}</h4>
+                                <span className="text-amber-800 font-semibold text-sm whitespace-nowrap">₪{item.price}</span>
+                              </div>
+                              {item.description && <p className="text-xs text-stone-500 mt-1 line-clamp-2">{item.description}</p>}
+                              <div className="mt-2 flex-1 flex items-end">
+                                {item.isAvailable ? (
+                                  <Link href={`/seller/${id}/order?item=${item.id}`}
+                                    className="w-full text-center py-2 rounded-lg text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 transition-colors active:scale-95">
+                                    Order
+                                  </Link>
+                                ) : (
+                                  <span className="text-stone-400 text-xs">Unavailable</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </section>
 
           {/* Reviews */}

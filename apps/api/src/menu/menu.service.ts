@@ -20,7 +20,7 @@ export class MenuService {
     await this.sellers.getById(sellerId);
     const items = await this.prisma.menuItem.findMany({
       where: { sellerId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ category: 'asc' }, { createdAt: 'asc' }],
     });
     return items.map((i: MenuItem) => this.toDto(i));
   }
@@ -33,6 +33,7 @@ export class MenuService {
         data: {
           sellerId,
           title: input.title,
+          category: (input as any).category ?? 'General',
           description: input.description ?? null,
           price: new Decimal(input.price),
           imageUrl: input.imageUrl ?? null,
@@ -53,6 +54,7 @@ export class MenuService {
         where: { id: menuItemId },
         data: {
           ...(input.title !== undefined && { title: input.title }),
+          ...((input as any).category !== undefined && { category: (input as any).category }),
           ...(input.description !== undefined && { description: input.description }),
           ...(input.price !== undefined && { price: new Decimal(input.price) }),
           ...(input.imageUrl !== undefined && { imageUrl: input.imageUrl }),

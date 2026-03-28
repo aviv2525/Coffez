@@ -83,6 +83,7 @@ model MenuItem {
   id          String        @id @default(uuid())
   sellerId    String        @map("seller_id")
   title       String
+  category    String        @default("General")
   description String?
   price       Decimal       @db.Decimal(10, 2)
   imageUrl    String?       @map("image_url")

@@ -11,6 +11,7 @@ const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 type MenuItem = {
   id: string;
   title: string;
+  category: string;
   description: string | null;
   price: number;
   imageUrl: string | null;
@@ -31,6 +32,7 @@ export default function SellerMenuPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [title, setTitle] = useState('');
+  const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -107,6 +109,7 @@ export default function SellerMenuPage() {
   function resetForm() {
     setEditingItemId(null);
     setTitle('');
+    setCategory('');
     setDescription('');
     setPrice('');
     setImageUrl('');
@@ -123,6 +126,7 @@ export default function SellerMenuPage() {
     const numericPrice = Number(price);
     const payload = {
       title: title.trim(),
+      category: category.trim() || 'General',
       description: description.trim() || null,
       price: numericPrice,
       imageUrl: imageUrl.trim() || null,
@@ -201,6 +205,7 @@ export default function SellerMenuPage() {
   function startEditItem(item: MenuItem) {
     setEditingItemId(item.id);
     setTitle(item.title);
+    setCategory(item.category ?? '');
     setDescription(item.description ?? '');
     setPrice(String(item.price));
     setImageUrl(item.imageUrl ?? '');
@@ -274,6 +279,16 @@ export default function SellerMenuPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full border border-amber-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
                 required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Category</label>
+              <input
+                type="text"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="e.g. Hot drinks, Cold drinks, Espresso…"
+                className="w-full border border-amber-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none"
               />
             </div>
             <div>
@@ -393,9 +408,10 @@ export default function SellerMenuPage() {
                       </div>
                     )}
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold text-amber-950">{item.title}</h3>
                         <span className="text-amber-800 font-medium text-sm">₪{item.price}</span>
+                        <span className="text-xs text-stone-400 bg-stone-100 px-2 py-0.5 rounded-full">{item.category}</span>
                       </div>
                       {item.description && (
                         <p className="mt-1 text-sm text-stone-600">{item.description}</p>

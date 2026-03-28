@@ -147,7 +147,7 @@ function SellerCard({
 }
 
 export default function MarketplacePage() {
-  const [view, setView] = useState<'split' | 'list' | 'map'>('list');
+  const [view, setView] = useState<'list' | 'map'>('list');
   const [search, setSearch] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [maxDistanceKm, setMaxDistanceKm] = useState<number | null>(null);
@@ -231,8 +231,8 @@ export default function MarketplacePage() {
     );
   }
 
-  const showList = view === 'list' || view === 'split';
-  const showMap = view === 'map' || view === 'split';
+  const showList = view === 'list';
+  const showMap = view === 'map';
 
   return (
     <div className="min-h-screen bg-amber-50/40 flex flex-col">
@@ -335,7 +335,7 @@ export default function MarketplacePage() {
           </button>
 
           <div className="ml-auto flex gap-1">
-            {(['split', 'list', 'map'] as const).map((v) => (
+            {(['list', 'map'] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
@@ -354,11 +354,6 @@ export default function MarketplacePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                   </svg>
                 )}
-                {v === 'split' && (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
-                  </svg>
-                )}
               </button>
             ))}
           </div>
@@ -375,30 +370,18 @@ export default function MarketplacePage() {
 
       {/* Main content */}
       <div className="flex-1 container mx-auto px-4 pb-6" style={{ minHeight: 0 }}>
-        <div className={`flex gap-4 ${view === 'split' ? 'h-[calc(100vh-180px)]' : ''}`}>
+        <div className="flex gap-4">
 
           {/* List panel */}
           {showList && (
-            <div className={`${view === 'split' ? 'flex-1 overflow-y-auto' : 'w-full'} space-y-4`}>
+            <div className="w-full space-y-4">
               {filtered.length === 0 && (
                 <div className="bg-white rounded-2xl border border-amber-200/80 p-10 text-center">
                   <p className="text-stone-500">No sellers match your filters.</p>
                 </div>
               )}
-              {view === 'list' ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {filtered.map((s) => (
-                    <SellerCard
-                      key={s.userId}
-                      s={s}
-                      distance={s.distance}
-                      active={activeSellerId === s.userId}
-                      onHover={setActiveSellerId}
-                    />
-                  ))}
-                </div>
-              ) : (
-                filtered.map((s) => (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {filtered.map((s) => (
                   <SellerCard
                     key={s.userId}
                     s={s}
@@ -406,14 +389,14 @@ export default function MarketplacePage() {
                     active={activeSellerId === s.userId}
                     onHover={setActiveSellerId}
                   />
-                ))
-              )}
+                ))}
+              </div>
             </div>
           )}
 
           {/* Map panel */}
           {showMap && (
-            <div className={`${view === 'split' ? 'w-72 shrink-0' : 'h-[calc(100vh-180px)] w-full'} rounded-2xl overflow-hidden`}>
+            <div className="h-[calc(100vh-180px)] w-full rounded-2xl overflow-hidden">
               <SellerMap
                 sellers={filtered}
                 userLocation={userLocation}
