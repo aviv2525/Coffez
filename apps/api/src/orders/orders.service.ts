@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushService } from '../push/push.service';
+import { WebhookService } from '../webhook/webhook.service';
 import type { CreateOrderInput } from '@orderbridge/shared';
 import { OrderStatus as PrismaOrderStatus, Prisma } from '@prisma/client';
 
@@ -16,6 +17,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
     private readonly push: PushService,
+    private readonly webhook: WebhookService,
   ) {}
 
   async create(buyerId: string, input: CreateOrderInput) {
@@ -68,6 +70,24 @@ export class OrdersService {
     );
 
     await this.push.notifySellerNewOrder(input.sellerId, order.id, buyer.fullName);
+
+    // Layer 2: fire webhook to external POS if seller configured one
+    const sellerProfile = await this.prisma.sellerProfile.findUnique({
+      where: { userId: input.sellerId },
+      select: { webhookUrl: true },
+    });
+    if (sellerProfile?.webhookUrl) {
+      await this.webhook.sendOrderEvent(sellerProfile.webhookUrl, {
+        event: 'order.created',
+        orderId: order.id,
+        status: order.status,
+        buyerName: buyer.fullName,
+        menuItemTitle: menuItem.title,
+        note: order.note,
+        scheduledFor: order.scheduledFor?.toISOString() ?? null,
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     return this.toOrderResponse(order);
   }
@@ -221,6 +241,24 @@ export class OrdersService {
     );
 
     await this.push.notifyBuyerOrderStatus(order.buyerId, order.id, status);
+
+    // Layer 2: fire webhook to external POS on status change
+    const sellerProfile = await this.prisma.sellerProfile.findUnique({
+      where: { userId: order.sellerId },
+      select: { webhookUrl: true },
+    });
+    if (sellerProfile?.webhookUrl) {
+      await this.webhook.sendOrderEvent(sellerProfile.webhookUrl, {
+        event: 'order.status_changed',
+        orderId: order.id,
+        status,
+        buyerName: order.buyer.fullName,
+        menuItemTitle: order.menuItem.title,
+        note: order.note,
+        scheduledFor: order.scheduledFor?.toISOString() ?? null,
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     return this.toOrderResponse(updated);
   }

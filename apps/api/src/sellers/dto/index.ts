@@ -71,6 +71,11 @@ export class CreateSellerProfileDto {
   @IsString()
   @MaxLength(500)
   pickupDetails?: string | null;
+
+  @ApiPropertyOptional({ description: 'Webhook URL for external POS integration (Layer 2)' })
+  @IsOptional()
+  @IsUrl()
+  webhookUrl?: string | null;
 }
 
 export class UpdateSellerProfileDto {
@@ -144,4 +149,9 @@ export class UpdateSellerProfileDto {
   @IsString()
   @MaxLength(500)
   pickupDetails?: string | null;
+
+  @ApiPropertyOptional({ description: 'Webhook URL for external POS integration (Layer 2)' })
+  @IsOptional()
+  @IsUrl()
+  webhookUrl?: string | null;
 }

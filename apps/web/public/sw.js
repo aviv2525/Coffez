@@ -27,7 +27,11 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
 
   // API calls — network only, no cache
-  if (e.request.url.includes('/api/') || e.request.url.includes('localhost:4000') || e.request.url.includes('onrender.com')) {
+  if (
+    e.request.url.includes('/api/') ||
+    e.request.url.includes('localhost:4000') ||
+    e.request.url.includes('onrender.com')
+  ) {
     return;
   }
 
@@ -40,5 +44,47 @@ self.addEventListener('fetch', (e) => {
         return res;
       })
       .catch(() => caches.match(e.request))
+  );
+});
+
+// ── Push Notifications (Layer 1 — in-app) ──────────────────────────────────
+
+self.addEventListener('push', (e) => {
+  const data = e.data?.json() ?? {};
+  const title = data.title || 'Coffez';
+  const body = data.body || 'יש לך הודעה חדשה';
+  const tag = data.tag || 'default';
+  const url = data.url || '/';
+
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag,
+      renotify: true,
+      data: { url },
+      vibrate: [200, 100, 200],
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = e.notification.data?.url || '/';
+
+  e.waitUntil(
+    clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if ('focus' in client) {
+            client.focus();
+            client.navigate(url);
+            return;
+          }
+        }
+        if (clients.openWindow) return clients.openWindow(url);
+      })
   );
 });

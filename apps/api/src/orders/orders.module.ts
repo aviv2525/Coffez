@@ -3,11 +3,12 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { PushModule } from '../push/push.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { WebhookModule } from '../webhook/webhook.module';
 
 @Module({
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],
-  imports: [PushModule, NotificationsModule],
+  imports: [PushModule, NotificationsModule, WebhookModule],
 })
 export class OrdersModule {}

@@ -90,6 +90,7 @@ export class SellersService {
       lat: input.lat ?? null,
       lng: input.lng ?? null,
       pickupDetails: input.pickupDetails ?? null,
+      webhookUrl: (input as any).webhookUrl ?? null,
     };
     return this.prisma.sellerProfile.create({ data });
   }
@@ -111,6 +112,7 @@ export class SellersService {
         ...(input.lat !== undefined && { lat: input.lat }),
         ...(input.lng !== undefined && { lng: input.lng }),
         ...(input.pickupDetails !== undefined && { pickupDetails: input.pickupDetails }),
+        ...((input as any).webhookUrl !== undefined && { webhookUrl: (input as any).webhookUrl }),
       },
     });
   }
