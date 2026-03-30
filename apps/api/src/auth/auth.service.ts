@@ -68,7 +68,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { email: input.email.toLowerCase() },
     });
-    if (!user || !(await argon2.verify(user.passwordHash, input.password))) {
+    if (!user || !user.passwordHash || !(await argon2.verify(user.passwordHash, input.password))) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -168,6 +168,43 @@ export class AuthService {
       this.prisma.passwordResetToken.delete({ where: { id: record.id } }),
     ]);
     return { success: true };
+  }
+
+  async loginWithGoogle(profile: { googleId: string; email: string; name: string }) {
+    // 1. Find by googleId
+    let user = await this.prisma.user.findUnique({ where: { googleId: profile.googleId } });
+
+    if (!user) {
+      // 2. Try to link to existing email account
+      const existing = await this.prisma.user.findUnique({
+        where: { email: profile.email.toLowerCase() },
+      });
+      if (existing) {
+        user = await this.prisma.user.update({
+          where: { id: existing.id },
+          data: {
+            googleId: profile.googleId,
+            emailVerifiedAt: existing.emailVerifiedAt ?? new Date(),
+          },
+        });
+      } else {
+        // 3. Create new user
+        user = await this.prisma.user.create({
+          data: {
+            email: profile.email.toLowerCase(),
+            passwordHash: null,
+            googleId: profile.googleId,
+            fullName: profile.name,
+            role: 'USER',
+            emailVerifiedAt: new Date(),
+          },
+        });
+      }
+    }
+
+    const accessToken = this.signAccessToken(user);
+    const { refreshToken, refreshExpiry } = await this.createRefreshToken(user.id);
+    return { user: this.userResponse(user), accessToken, refreshToken, expiresAt: refreshExpiry };
   }
 
   async revokeAllRefreshTokensForUser(userId: string) {
