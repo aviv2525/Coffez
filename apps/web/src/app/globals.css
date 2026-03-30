@@ -5,3 +5,7 @@
 body {
   @apply bg-amber-50/30 text-stone-900 antialiased;
 }
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

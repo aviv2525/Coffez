@@ -3,6 +3,7 @@ import { Providers } from '@/components/Providers';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { InstallBanner } from '@/components/InstallBanner';
 import { PWAProvider } from '@/components/PWAProvider';
+import { BottomNav } from '@/components/BottomNav';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -37,7 +38,10 @@ export default function RootLayout({
         <Providers>
           <PWAProvider />
           <OfflineBanner />
-          {children}
+          <div className="pb-16 md:pb-0">
+            {children}
+          </div>
+          <BottomNav />
           <InstallBanner />
         </Providers>
       </body>
