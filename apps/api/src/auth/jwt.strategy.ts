@@ -18,7 +18,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   ) {
     const secret = configService?.get?.('JWT_SECRET') ?? process.env.JWT_SECRET ?? 'change-me-in-production';
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        (req: any) => req?.query?.token ?? null,
+      ]),
       ignoreExpiration: false,
       secretOrKey: secret,
     });

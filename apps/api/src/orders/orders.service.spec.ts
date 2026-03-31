@@ -5,6 +5,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushService } from '../push/push.service';
 import { WebhookService } from '../webhook/webhook.service';
+import { PosService } from '../pos/pos.service';
+import { OrdersSseService } from './orders-sse.service';
 
 const mockPrisma = {
   order: {
@@ -22,6 +24,8 @@ const mockPrisma = {
 const mockNotifications = { sendOrderCreatedEmail: jest.fn(), sendOrderStatusChangedEmail: jest.fn() };
 const mockPush = { notifySellerNewOrder: jest.fn(), notifyBuyerOrderStatus: jest.fn() };
 const mockWebhook = { sendOrderEvent: jest.fn() };
+const mockPos = { dispatchOrderToPos: jest.fn() };
+const mockSse = { emit: jest.fn() };
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -35,6 +39,8 @@ describe('OrdersService', () => {
         { provide: NotificationsService, useValue: mockNotifications },
         { provide: PushService, useValue: mockPush },
         { provide: WebhookService, useValue: mockWebhook },
+        { provide: PosService, useValue: mockPos },
+        { provide: OrdersSseService, useValue: mockSse },
       ],
     }).compile();
     service = module.get<OrdersService>(OrdersService);

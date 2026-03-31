@@ -1,11 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { OnlineToggle } from '@/components/OnlineToggle';
 import { Toast } from '@/components/Toast';
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '');
 
 type Order = {
   id: string;
@@ -46,29 +50,45 @@ export default function SellerOrdersPage() {
   const [toast, setToast] = useState<string | null>(null);
   const prevPendingCount = useRef(0);
 
-  async function load() {
+  const load = useCallback(async (silent = false) => {
     const [ordersRes, profileRes] = await Promise.all([
       apiFetch<{ data: Order[] }>('/orders/incoming'),
       apiFetch<{ isOnline: boolean }>('/sellers/me'),
     ]);
     if (ordersRes.status === 401) { router.replace('/auth/login'); return; }
-    if (ordersRes.error || !ordersRes.data) { setLoadState('error'); return; }
+    if (ordersRes.error || !ordersRes.data) { if (!silent) setLoadState('error'); return; }
     const incoming = ordersRes.data.data;
     const newPending = incoming.filter((o) => o.status === 'PENDING').length;
     if (newPending > prevPendingCount.current && prevPendingCount.current >= 0 && loadState === 'ready') {
-      setToast(`New order arrived!`);
+      setToast('New order arrived!');
     }
     prevPendingCount.current = newPending;
     setOrders(incoming);
     if (profileRes.data) setIsOnline(profileRes.data.isOnline ?? false);
     setLoadState('ready');
-  }
+  }, [loadState, router]);
 
+  // Initial load
   useEffect(() => {
     load();
-    // Poll every 30s for new orders
-    const interval = setInterval(load, 30_000);
-    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // SSE — real-time updates instead of polling
+  useEffect(() => {
+    const token = (window as any).__orderbridge_access_token as string | undefined;
+    if (!token) return;
+
+    const es = new EventSource(`${API_BASE}/orders/stream?token=${encodeURIComponent(token)}`);
+
+    es.onmessage = () => {
+      // Any event (new order or status change) → silent reload
+      load(true);
+    };
+
+    es.onerror = () => es.close();
+
+    return () => es.close();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

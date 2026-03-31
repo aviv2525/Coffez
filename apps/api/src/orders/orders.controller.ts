@@ -1,17 +1,22 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Sse, Req } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser, CurrentUserPayload } from '../auth/decorators/current-user.decorator';
 import { OrdersService } from './orders.service';
+import { OrdersSseService } from './orders-sse.service';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
 import { OrderStatus } from '@prisma/client';
 
 @ApiTags('orders')
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly orders: OrdersService) {}
+  constructor(
+    private readonly orders: OrdersService,
+    private readonly sse: OrdersSseService,
+  ) {}
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -65,6 +70,13 @@ export class OrdersController {
     @Body() dto: UpdateOrderStatusDto,
   ) {
     return this.orders.updateStatus(orderId, user.id, user.role, dto.status as OrderStatus, dto.estimatedMinutes);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Sse('stream')
+  stream(@CurrentUser() user: CurrentUserPayload) {
+    return this.sse.streamForUser(user.id);
   }
 
   @ApiBearerAuth()

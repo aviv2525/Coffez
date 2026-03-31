@@ -8,6 +8,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushService } from '../push/push.service';
 import { WebhookService } from '../webhook/webhook.service';
+import { PosService } from '../pos/pos.service';
+import { OrdersSseService } from './orders-sse.service';
 import type { CreateOrderInput } from '@orderbridge/shared';
 import { OrderStatus as PrismaOrderStatus, Prisma } from '@prisma/client';
 
@@ -18,6 +20,8 @@ export class OrdersService {
     private readonly notifications: NotificationsService,
     private readonly push: PushService,
     private readonly webhook: WebhookService,
+    private readonly pos: PosService,
+    private readonly ordersSse: OrdersSseService,
   ) {}
 
   async create(buyerId: string, input: CreateOrderInput) {
@@ -70,6 +74,18 @@ export class OrdersService {
     );
 
     await this.push.notifySellerNewOrder(input.sellerId, order.id, buyer.fullName);
+
+    // SSE — real-time new order alert to seller
+    this.ordersSse.emit({ userId: input.sellerId, orderId: order.id, status: PrismaOrderStatus.PENDING });
+
+    // Layer 2: dispatch to POS integration if configured
+    await this.pos.dispatchOrderToPos(
+      input.sellerId,
+      order.id,
+      input.menuItemId,
+      buyer.fullName,
+      order.note,
+    );
 
     // Layer 2: fire webhook to external POS if seller configured one
     const sellerProfile = await this.prisma.sellerProfile.findUnique({
@@ -241,6 +257,10 @@ export class OrdersService {
     );
 
     await this.push.notifyBuyerOrderStatus(order.buyerId, order.id, status);
+
+    // SSE — real-time update to buyer and seller
+    this.ordersSse.emit({ userId: order.buyerId, orderId: order.id, status, estimatedMinutes });
+    this.ordersSse.emit({ userId: order.sellerId, orderId: order.id, status, estimatedMinutes });
 
     // Layer 2: fire webhook to external POS on status change
     const sellerProfile = await this.prisma.sellerProfile.findUnique({

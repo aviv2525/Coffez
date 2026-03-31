@@ -12,6 +12,7 @@ import { OrdersModule } from './orders/orders.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PushModule } from './push/push.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { PosModule } from './pos/pos.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -39,6 +40,7 @@ import { HealthController } from './health.controller';
     NotificationsModule,
     PushModule,
     ReviewsModule,
+    PosModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

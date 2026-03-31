@@ -78,6 +78,7 @@ model SellerProfile {
   orders       Order[]        @relation("SellerOrders")
   media        ProfileMedia[]
   reviews      Review[]
+  posIntegration PosIntegration?
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -92,8 +93,9 @@ model MenuItem {
   isAvailable Boolean       @default(true) @map("is_available")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
-  seller      SellerProfile @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
+  seller      SellerProfile    @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
   orders      Order[]
+  mappings    MenuItemMapping[]
 }
 
 model ProfileMedia {
@@ -124,6 +126,7 @@ model Order {
   buyer        User          @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
   menuItem     MenuItem      @relation(fields: [menuItemId], references: [id])
   seller       SellerProfile @relation("SellerOrders", fields: [sellerId], references: [userId], onDelete: Cascade)
+  posLogs      OrderPosLog[]
 }
 
 model PushSubscription {
@@ -136,6 +139,53 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, endpoint])
+}
+
+// ── POS Integration (Layer 2) ─────────────────────────────────────────────
+
+model PosIntegration {
+  id          String   @id @default(uuid())
+  sellerId    String   @unique @map("seller_id")
+  provider    String   // e.g. "beecomm", "generic_webhook", "custom"
+  apiUrl      String   @map("api_url")
+  apiKey      String   @map("api_key")
+  isActive    Boolean  @default(true) @map("is_active")
+  meta        Json?    // extra provider-specific config
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  seller      SellerProfile  @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
+  mappings    MenuItemMapping[]
+}
+
+model MenuItemMapping {
+  id              String   @id @default(uuid())
+  posIntegrationId String  @map("pos_integration_id")
+  menuItemId      String   @map("menu_item_id")
+  externalId      String   @map("external_id")   // ID in POS system
+  externalPrice   Decimal? @map("external_price") @db.Decimal(10, 2)
+  isEnabled       Boolean  @default(true) @map("is_enabled")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  posIntegration  PosIntegration @relation(fields: [posIntegrationId], references: [id], onDelete: Cascade)
+  menuItem        MenuItem       @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([posIntegrationId, menuItemId])
+}
+
+model OrderPosLog {
+  id              String   @id @default(uuid())
+  orderId         String   @map("order_id")
+  provider        String
+  externalOrderId String?  @map("external_order_id")
+  requestBody     Json     @map("request_body")
+  responseBody    Json?    @map("response_body")
+  statusCode      Int?     @map("status_code")
+  success         Boolean  @default(false)
+  errorMessage    String?  @map("error_message")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Review {

@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
 import { Header } from '@/components/Header';
+import { useOrderStream } from '@/hooks/useOrderStream';
+import { useAuth } from '@/components/AuthProvider';
 
 type Order = {
   id: string;
@@ -31,8 +33,71 @@ const STATUS_COLOR: Record<Order['status'], string> = {
   CANCELLED: 'bg-stone-100 text-stone-500 border-stone-200',
 };
 
+const STEPS: { key: Order['status']; label: string }[] = [
+  { key: 'PENDING', label: 'Placed' },
+  { key: 'ACCEPTED', label: 'Accepted' },
+  { key: 'COMPLETED', label: 'Ready' },
+];
+
+function OrderStatusStepper({ status, estimatedMinutes }: { status: Order['status']; estimatedMinutes: number | null }) {
+  if (status === 'REJECTED' || status === 'CANCELLED') return null;
+
+  const activeIndex = status === 'COMPLETED' ? 2 : status === 'ACCEPTED' ? 1 : 0;
+
+  return (
+    <div className="mt-3 mb-1">
+      <div className="flex items-center gap-0">
+        {STEPS.map((step, i) => {
+          const done = i <= activeIndex;
+          const current = i === activeIndex;
+          return (
+            <div key={step.key} className="flex items-center flex-1 last:flex-none">
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
+                    done
+                      ? current
+                        ? 'bg-amber-800 text-white ring-2 ring-amber-300'
+                        : 'bg-green-600 text-white'
+                      : 'bg-stone-200 text-stone-400'
+                  }`}
+                >
+                  {done && !current ? (
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    i + 1
+                  )}
+                </div>
+                <span className={`text-[10px] mt-1 font-medium ${done ? 'text-amber-900' : 'text-stone-400'}`}>
+                  {step.label}
+                </span>
+              </div>
+              {i < STEPS.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-1 mb-4 transition-all duration-500 ${i < activeIndex ? 'bg-green-500' : 'bg-stone-200'}`} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {status === 'ACCEPTED' && estimatedMinutes && (
+        <div className="mt-2 flex items-center gap-1.5 text-green-700 text-xs font-medium">
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Ready in ~{estimatedMinutes} minutes
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OrdersPage() {
+  const { user } = useAuth();
   const qc = useQueryClient();
+
+  useOrderStream(!!user);
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders-my'],
@@ -97,18 +162,7 @@ export default function OrdersPage() {
                           {o.note && (
                             <p className="text-xs text-stone-500 mt-1">Note: {o.note}</p>
                           )}
-                          {/* Estimated time — shown when accepted */}
-                          {o.status === 'ACCEPTED' && o.estimatedMinutes && (
-                            <div className="mt-2 flex items-center gap-1.5 text-green-700 text-sm font-medium">
-                              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              Ready in ~{o.estimatedMinutes} minutes
-                            </div>
-                          )}
-                          {o.status === 'ACCEPTED' && !o.estimatedMinutes && (
-                            <p className="text-sm text-green-700 font-medium mt-1">✓ Order accepted</p>
-                          )}
+                          <OrderStatusStepper status={o.status} estimatedMinutes={o.estimatedMinutes} />
                         </div>
                         <div className="text-right shrink-0">
                           <p className="font-semibold text-amber-900 text-sm">₪{o.menuItem?.price}</p>
