@@ -172,7 +172,10 @@ export default function ProfilePage() {
                 ) : (
                   <h1 className="text-lg font-bold text-amber-950 truncate">{user.fullName}</h1>
                 )}
-                <p className="text-sm text-stone-500 truncate">{sellerProfile.displayName}</p>
+                <p className="text-sm text-stone-500 truncate">
+                  <span className="text-[10px] text-stone-400 uppercase tracking-wide mr-1">Shop</span>
+                  {sellerProfile.displayName}
+                </p>
               </div>
               <OnlineToggle initialValue={sellerProfile.isOnline} />
             </div>

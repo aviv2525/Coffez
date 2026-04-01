@@ -22,12 +22,12 @@ import { HealthController } from './health.controller';
       {
         name: 'short',
         ttl: 60000, // 1 min
-        limit: 100,
+        limit: 300,
       },
       {
         name: 'auth',
         ttl: 600000, // 10 min
-        limit: 5,
+        limit: 1000, // high default; login overrides to 5 via @Throttle decorator
       },
     ]),
     PrismaModule,

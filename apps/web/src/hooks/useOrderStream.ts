@@ -27,24 +27,18 @@ export function useOrderStream(enabled: boolean) {
           estimatedMinutes: number | null;
         };
 
-        // Update the cached order in both my orders and incoming orders lists
-        const updateOrder = (old: any) => {
+        // orders-my cache shape: { data: Order[] }
+        qc.setQueriesData({ queryKey: ['orders-my'] }, (old: any) => {
           if (!old?.data) return old;
           return {
             ...old,
-            data: {
-              ...old.data,
-              data: old.data.data.map((o: any) =>
-                o.id === data.orderId
-                  ? { ...o, status: data.status, estimatedMinutes: data.estimatedMinutes }
-                  : o,
-              ),
-            },
+            data: old.data.map((o: any) =>
+              o.id === data.orderId
+                ? { ...o, status: data.status, estimatedMinutes: data.estimatedMinutes }
+                : o,
+            ),
           };
-        };
-
-        qc.setQueriesData({ queryKey: ['orders-my'] }, updateOrder);
-        qc.setQueriesData({ queryKey: ['orders-incoming'] }, updateOrder);
+        });
       } catch {
         // ignore parse errors
       }

@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { User } from '@orderbridge/shared';
 import { apiFetch, setAuthToken, clearAuthToken } from '@/lib/api';
 
@@ -19,6 +20,7 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     isAuthenticated: false,
@@ -51,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: error || 'Login failed' };
       }
 
+      queryClient.clear();
       setAuthToken(data.accessToken);
       setUser(data.user);
       return { success: true };
@@ -68,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Ignore logout errors
     }
     clearAuthToken();
+    queryClient.clear();
     setUser(null);
   };
 
