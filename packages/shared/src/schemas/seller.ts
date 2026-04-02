@@ -15,6 +15,7 @@ export const createSellerProfileSchema = z.object({
   pickupDetails: z.string().max(500).optional().nullable(),
   tipBit: z.string().max(300).optional().nullable(),
   tipPaypal: z.string().max(300).optional().nullable(),
+  tier: z.enum(['HOME', 'BUSINESS']).optional(),
 });
 
 export const updateSellerProfileSchema = createSellerProfileSchema.partial();

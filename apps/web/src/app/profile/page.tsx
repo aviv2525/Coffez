@@ -20,6 +20,8 @@ type User = {
 type SellerProfile = {
   displayName: string;
   isOnline: boolean;
+  status: string;
+  tier: string;
 };
 
 type Order = {
@@ -88,7 +90,9 @@ export default function ProfilePage() {
     enabled: !!user,
   });
 
-  const isSeller = !!sellerProfile;
+  const isSeller = !!sellerProfile && sellerProfile.status === 'APPROVED';
+  const isPendingSeller = !!sellerProfile && sellerProfile.status === 'PENDING';
+  const isRejectedSeller = !!sellerProfile && sellerProfile.status === 'REJECTED';
 
   const { data: buyerOrders } = useQuery({
     queryKey: ['orders-my-profile'],
@@ -136,6 +140,90 @@ export default function ProfilePage() {
         <div className="flex items-center justify-center py-24">
           <div className="animate-pulse h-8 w-48 bg-amber-100 rounded" />
         </div>
+      </div>
+    );
+  }
+
+  /* ── PENDING SELLER ── */
+  if (isPendingSeller) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="container mx-auto px-4 py-6 max-w-lg">
+
+          {/* Profile card — same as buyer */}
+          <div className="bg-white rounded-2xl border border-amber-200/80 p-6 mb-4">
+            <div className="flex items-center gap-4">
+              <Initials name={user.fullName} />
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-bold text-amber-950 truncate">{user.fullName}</h1>
+                <p className="text-sm text-stone-500 truncate">{user.email}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pending section */}
+          <div className="bg-white rounded-2xl border border-amber-300/60 p-6 mb-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-amber-950 text-sm">Application under review</p>
+                <p className="text-xs text-stone-400">We're reviewing your seller application</p>
+              </div>
+            </div>
+            <p className="text-sm text-stone-600 leading-relaxed">
+              We're taking care of your request ☕<br />
+              Approval usually takes <strong>24–48 hours</strong>. We may reach out by phone or email to verify a few details before activating your seller account.
+            </p>
+            <div className="mt-4 bg-amber-50 rounded-xl p-3 text-xs text-amber-800">
+              <strong>Tier:</strong> {sellerProfile!.tier === 'BUSINESS' ? 'Business' : 'Home seller'}
+            </div>
+          </div>
+
+          {/* Still can browse as buyer */}
+          <div className="bg-white rounded-2xl border border-amber-200/80 overflow-hidden mb-4">
+            <Link href="/orders" className="flex items-center gap-4 px-5 py-4 hover:bg-amber-50 transition-colors group border-b border-amber-100/80">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-stone-800">My orders</p>
+                <p className="text-xs text-stone-400">Continue ordering coffee while you wait</p>
+              </div>
+              <svg className="w-4 h-4 text-stone-300 group-hover:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+            <Link href="/marketplace" className="flex items-center gap-4 px-5 py-4 hover:bg-amber-50 transition-colors group">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-stone-800">Marketplace</p>
+                <p className="text-xs text-stone-400">Browse sellers & order coffee</p>
+              </div>
+              <svg className="w-4 h-4 text-stone-300 group-hover:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+
+          <button
+            onClick={async () => { await logout(); router.replace('/'); }}
+            className="w-full py-3 rounded-2xl text-sm font-medium text-red-500 hover:text-red-700 border border-red-100 hover:bg-red-50 transition-colors"
+          >
+            Log out
+          </button>
+
+        </main>
       </div>
     );
   }
@@ -379,6 +467,14 @@ export default function ProfilePage() {
           )}
         </div>
 
+        {/* Rejected seller banner */}
+        {isRejectedSeller && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 text-sm text-red-800">
+            <p className="font-semibold mb-0.5">הבקשה שלך לא אושרה</p>
+            <p className="text-xs text-red-600">לשאלות פנה אלינו בדוא"ל <a href="mailto:avivcoffez@gmail.com" className="underline">avivcoffez@gmail.com</a></p>
+          </div>
+        )}
+
         {/* Active order banner */}
         {activeOrder && (
           <Link href="/orders" className="block bg-amber-900 text-amber-50 rounded-2xl p-4 mb-4 hover:bg-amber-800 transition-colors">
@@ -419,7 +515,7 @@ export default function ProfilePage() {
             </svg>
           </Link>
 
-          <Link href="/marketplace" className="flex items-center gap-4 px-5 py-4 hover:bg-amber-50 transition-colors group">
+          <Link href="/marketplace" className="flex items-center gap-4 px-5 py-4 hover:bg-amber-50 transition-colors group border-b border-amber-100/80">
             <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
               <svg className="w-5 h-5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -428,6 +524,21 @@ export default function ProfilePage() {
             <div className="flex-1">
               <p className="text-sm font-semibold text-stone-800">Marketplace</p>
               <p className="text-xs text-stone-400">Browse sellers & order coffee</p>
+            </div>
+            <svg className="w-4 h-4 text-stone-300 group-hover:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+
+          <Link href="/become-seller" className="flex items-center gap-4 px-5 py-4 hover:bg-amber-50 transition-colors group">
+            <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-stone-800">Become a seller</p>
+              <p className="text-xs text-stone-400">Sell your homemade coffee on Coffez</p>
             </div>
             <svg className="w-4 h-4 text-stone-300 group-hover:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

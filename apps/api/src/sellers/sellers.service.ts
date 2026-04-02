@@ -1,23 +1,32 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import type { CreateSellerProfileInput, UpdateSellerProfileInput } from '@orderbridge/shared';
 
-/** Matches Prisma SellerProfile create input including coffee fields (use after prisma generate) */
-type SellerProfileCreateData = Prisma.SellerProfileUncheckedCreateInput & {
+type SellerProfileCreateData = Omit<Prisma.SellerProfileUncheckedCreateInput, 'status' | 'tier'> & {
   beans?: string[];
   drinkTypes?: string[];
   machineType?: string | null;
   openingHours?: string | null;
+  status?: string;
+  tier?: string;
+  phone?: string | null;
+  city?: string | null;
+  street?: string | null;
+  applicationNotes?: string | null;
 };
 
 @Injectable()
 export class SellersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async list(page = 1, limit = 20, category?: string) {
     const skip = (page - 1) * limit;
-    const where = category ? { categories: { has: category } } : {};
+    const where: any = { status: 'APPROVED', ...(category ? { categories: { has: category } } : {}) };
 
     const [data, total] = await Promise.all([
       this.prisma.sellerProfile.findMany({
@@ -74,7 +83,13 @@ export class SellersService {
     const existing = await this.prisma.sellerProfile.findUnique({
       where: { userId },
     });
-    if (existing) throw new ForbiddenException('Seller profile already exists');
+    if (existing) {
+      if ((existing as any).status === 'REJECTED') {
+        await this.prisma.sellerProfile.delete({ where: { userId } });
+      } else {
+        throw new ForbiddenException('Seller profile already exists');
+      }
+    }
 
     const data: SellerProfileCreateData = {
       userId,
@@ -93,8 +108,20 @@ export class SellersService {
       webhookUrl: (input as any).webhookUrl ?? null,
       tipBit: (input as any).tipBit ?? null,
       tipPaypal: (input as any).tipPaypal ?? null,
+      status: 'PENDING',
+      tier: (input as any).tier ?? 'HOME',
+      phone: (input as any).phone ?? null,
+      city: (input as any).city ?? null,
+      street: (input as any).street ?? null,
     };
-    return this.prisma.sellerProfile.create({ data });
+    const profile = await this.prisma.sellerProfile.create({ data });
+    await this.notifications.sendSellerApplicationEmail(userId, input.displayName, (input as any).tier ?? 'HOME', {
+      phone: (input as any).phone,
+      city: (input as any).city,
+      street: (input as any).street,
+      notes: (input as any).applicationNotes,
+    });
+    return profile;
   }
 
   async update(userId: string, input: UpdateSellerProfileInput) {
@@ -118,6 +145,13 @@ export class SellersService {
         ...((input as any).tipBit !== undefined && { tipBit: (input as any).tipBit }),
         ...((input as any).tipPaypal !== undefined && { tipPaypal: (input as any).tipPaypal }),
       },
+    });
+  }
+
+  async approve(userId: string) {
+    return this.prisma.sellerProfile.update({
+      where: { userId },
+      data: { status: 'APPROVED' } as any,
     });
   }
 
@@ -153,6 +187,8 @@ export class SellersService {
       lng: seller.lng ?? null,
       pickupDetails: seller.pickupDetails ?? null,
       isOnline: seller.isOnline ?? false,
+      status: seller.status ?? 'PENDING',
+      tier: seller.tier ?? 'HOME',
       tipBit: seller.tipBit ?? null,
       tipPaypal: seller.tipPaypal ?? null,
       coverMedia: firstMedia ? { id: firstMedia.id, type: firstMedia.type, url: firstMedia.url, thumbnailUrl: firstMedia.thumbnailUrl } : null,

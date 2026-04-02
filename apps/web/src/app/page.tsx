@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Header } from '@/components/Header';
+import { SellCTA } from '@/components/SellCTA';
 
 export default function HomePage() {
   return (
@@ -29,12 +30,7 @@ export default function HomePage() {
             >
               Find coffee
             </Link>
-            <Link
-              href="/settings/seller"
-              className="flex-1 text-center border border-amber-300 text-amber-900 px-6 py-3.5 rounded-2xl hover:bg-amber-100 font-semibold text-base transition-colors active:scale-95"
-            >
-              Sell yours
-            </Link>
+            <SellCTA />
           </div>
 
         </div>

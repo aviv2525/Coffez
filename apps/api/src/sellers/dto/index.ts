@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsArray, IsOptional, MaxLength, IsUrl, IsNumber, Min, Max } from 'class-validator';
+import { IsString, IsArray, IsOptional, MaxLength, IsUrl, IsNumber, Min, Max, IsIn } from 'class-validator';
 
 export class CreateSellerProfileDto {
   @ApiProperty()
@@ -76,6 +76,33 @@ export class CreateSellerProfileDto {
   @IsOptional()
   @IsUrl()
   webhookUrl?: string | null;
+
+  @ApiPropertyOptional({ enum: ['HOME', 'BUSINESS'] })
+  @IsOptional()
+  @IsIn(['HOME', 'BUSINESS'])
+  tier?: 'HOME' | 'BUSINESS';
+
+  @ApiProperty()
+  @IsString()
+  @MaxLength(20)
+  phone!: string;
+
+  @ApiProperty()
+  @IsString()
+  @MaxLength(100)
+  city!: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  street?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  applicationNotes?: string;
 }
 
 export class UpdateSellerProfileDto {

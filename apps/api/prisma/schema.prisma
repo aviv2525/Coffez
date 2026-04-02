@@ -70,6 +70,11 @@ model SellerProfile {
   lng            Float?
   pickupDetails  String?        @map("pickup_details")
   isOnline       Boolean        @default(false) @map("is_online")
+  status         String         @default("PENDING")
+  tier           String         @default("HOME")
+  phone          String?        @map("phone")
+  city           String?        @map("city")
+  street         String?        @map("street")
   webhookUrl     String?        @map("webhook_url")
   tipBit         String?        @map("tip_bit")
   tipPaypal      String?        @map("tip_paypal")

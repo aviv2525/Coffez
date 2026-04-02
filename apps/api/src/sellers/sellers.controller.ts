@@ -36,7 +36,12 @@ export class SellersController {
       drinkTypes: dto.drinkTypes ?? [],
       machineType: dto.machineType,
       openingHours: dto.openingHours,
-    });
+      tier: dto.tier ?? 'HOME',
+      phone: dto.phone,
+      city: dto.city,
+      street: dto.street,
+      applicationNotes: dto.applicationNotes,
+    } as any);
   }
 
   @ApiBearerAuth()
