@@ -40,6 +40,8 @@ type Seller = {
   lng?: number | null;
   pickupDetails?: string | null;
   isOnline?: boolean;
+  tipBit?: string | null;
+  tipPaypal?: string | null;
   coverMedia?: { id: string; type: string; url: string; thumbnailUrl: string | null } | null;
   media?: MediaItem[];
 };
@@ -184,6 +186,14 @@ export default function SellerPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [bitCopied, setBitCopied] = useState(false);
+
+  function copyBitPhone(phone: string) {
+    navigator.clipboard.writeText(phone).then(() => {
+      setBitCopied(true);
+      setTimeout(() => setBitCopied(false), 2500);
+    });
+  }
 
   const { data: seller, isLoading: loadingSeller } = useQuery({
     queryKey: ['seller', id],
@@ -388,6 +398,30 @@ export default function SellerPage() {
                 Back to marketplace
               </Link>
             </div>
+
+            {/* Tip buttons — always shown */}
+            <div className="mt-4 pt-4 border-t border-amber-100">
+              <p className="text-xs text-stone-400 mb-2">Enjoyed your coffee? Leave a tip ☕</p>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => seller.tipBit ? copyBitPhone(seller.tipBit) : alert('The seller hasn\'t set up Bit payments yet.')}
+                  className="flex items-center gap-2 py-2 px-4 rounded-xl text-sm font-medium bg-[#00AAFF] text-white hover:opacity-90 transition-opacity"
+                >
+                  {bitCopied ? '✓ Copied!' : 'Tip with Bit'}
+                </button>
+                <button
+                  onClick={() => seller.tipPaypal
+                    ? window.open(`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(seller.tipPaypal)}&currency_code=ILS`, '_blank')
+                    : alert('The seller hasn\'t set up PayPal payments yet.')}
+                  className="flex items-center gap-2 py-2 px-4 rounded-xl text-sm font-medium bg-[#003087] text-white hover:opacity-90 transition-opacity"
+                >
+                  Tip with PayPal
+                </button>
+              </div>
+              {seller.tipBit && !bitCopied && (
+                <p className="text-xs text-stone-400 mt-2">Bit: tap the button to copy the phone number, then open Bit app</p>
+              )}
+            </div>
           </div>
 
           {/* Gallery */}
@@ -395,7 +429,7 @@ export default function SellerPage() {
             <section className="mb-8">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">Their setup</h2>
               <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
-                {media.map((m, i) => {
+                {media.map((m) => {
                   const imgIndex = imageMedia.indexOf(m);
                   return (
                     <div

@@ -91,6 +91,8 @@ export class SellersService {
       lng: input.lng ?? null,
       pickupDetails: input.pickupDetails ?? null,
       webhookUrl: (input as any).webhookUrl ?? null,
+      tipBit: (input as any).tipBit ?? null,
+      tipPaypal: (input as any).tipPaypal ?? null,
     };
     return this.prisma.sellerProfile.create({ data });
   }
@@ -113,6 +115,8 @@ export class SellersService {
         ...(input.lng !== undefined && { lng: input.lng }),
         ...(input.pickupDetails !== undefined && { pickupDetails: input.pickupDetails }),
         ...((input as any).webhookUrl !== undefined && { webhookUrl: (input as any).webhookUrl }),
+        ...((input as any).tipBit !== undefined && { tipBit: (input as any).tipBit }),
+        ...((input as any).tipPaypal !== undefined && { tipPaypal: (input as any).tipPaypal }),
       },
     });
   }
@@ -149,6 +153,8 @@ export class SellersService {
       lng: seller.lng ?? null,
       pickupDetails: seller.pickupDetails ?? null,
       isOnline: seller.isOnline ?? false,
+      tipBit: seller.tipBit ?? null,
+      tipPaypal: seller.tipPaypal ?? null,
       coverMedia: firstMedia ? { id: firstMedia.id, type: firstMedia.type, url: firstMedia.url, thumbnailUrl: firstMedia.thumbnailUrl } : null,
       avgRating,
       reviewCount,

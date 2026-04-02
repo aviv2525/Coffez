@@ -71,6 +71,8 @@ model SellerProfile {
   pickupDetails  String?        @map("pickup_details")
   isOnline       Boolean        @default(false) @map("is_online")
   webhookUrl     String?        @map("webhook_url")
+  tipBit         String?        @map("tip_bit")
+  tipPaypal      String?        @map("tip_paypal")
 
   createdAt    DateTime       @default(now()) @map("created_at")
   updatedAt    DateTime       @updatedAt @map("updated_at")

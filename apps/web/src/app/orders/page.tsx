@@ -1,11 +1,57 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { useOrderStream } from '@/hooks/useOrderStream';
 import { useAuth } from '@/components/AuthProvider';
+
+function TipButtons({ tipBit, tipPaypal }: { tipBit?: string | null; tipPaypal?: string | null }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleBit() {
+    if (!tipBit) {
+      alert('The seller hasn\'t set up Bit payments yet.');
+      return;
+    }
+    navigator.clipboard.writeText(tipBit).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  }
+
+  function handlePaypal() {
+    if (!tipPaypal) {
+      alert('The seller hasn\'t set up PayPal payments yet.');
+      return;
+    }
+    window.open(
+      `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(tipPaypal)}&currency_code=ILS`,
+      '_blank',
+    );
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-stone-100">
+      <p className="text-xs text-stone-400 mb-2">Leave a tip ☕</p>
+      <div className="flex gap-2 flex-wrap">
+        <button onClick={handleBit}
+          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-[#00AAFF] text-white hover:opacity-90 transition-opacity">
+          {copied ? '✓ Copied!' : 'Tip with Bit'}
+        </button>
+        <button onClick={handlePaypal}
+          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-[#003087] text-white hover:opacity-90 transition-opacity">
+          Tip with PayPal
+        </button>
+      </div>
+      {tipBit && !copied && (
+        <p className="text-xs text-stone-400 mt-1.5">Bit: tap to copy number, then open the Bit app</p>
+      )}
+    </div>
+  );
+}
 
 type Order = {
   id: string;
@@ -14,7 +60,7 @@ type Order = {
   estimatedMinutes: number | null;
   createdAt: string;
   menuItem?: { title: string; price: number };
-  seller?: { displayName: string; userId: string };
+  seller?: { displayName: string; userId: string; tipBit?: string | null; tipPaypal?: string | null };
 };
 
 const STATUS_LABEL: Record<Order['status'], string> = {
@@ -179,6 +225,9 @@ export default function OrdersPage() {
                         >
                           Cancel order
                         </button>
+                      )}
+                      {o.status === 'ACCEPTED' && (
+                        <TipButtons tipBit={o.seller?.tipBit} tipPaypal={o.seller?.tipPaypal} />
                       )}
                     </div>
                   ))}

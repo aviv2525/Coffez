@@ -24,6 +24,8 @@ type SellerProfile = {
   lng: number | null;
   pickupDetails: string | null;
   isOnline: boolean;
+  tipBit: string | null;
+  tipPaypal: string | null;
 };
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
@@ -102,6 +104,8 @@ export default function SellerSettingsPage() {
   const [machineType, setMachineType] = useState('');
   const [beans, setBeans] = useState('');
   const [drinkTypes, setDrinkTypes] = useState('');
+  const [tipBit, setTipBit] = useState('');
+  const [tipPaypal, setTipPaypal] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState<string | null>(null);
 
@@ -151,6 +155,8 @@ export default function SellerSettingsPage() {
     setLng(p.lng ?? null);
     setPickupDetails(p.pickupDetails ?? '');
     setIsOnline(p.isOnline ?? false);
+    setTipBit(p.tipBit ?? '');
+    setTipPaypal(p.tipPaypal ?? '');
   }
 
   async function uploadFile(file: File) {
@@ -196,6 +202,8 @@ export default function SellerSettingsPage() {
         drinkTypes: drinkTypes.split(',').map((d) => d.trim()).filter(Boolean),
         lat: lat ?? null, lng: lng ?? null,
         pickupDetails: pickupDetails.trim() || null,
+        tipBit: tipBit.trim() || null,
+        tipPaypal: tipPaypal.trim() || null,
       }),
     });
     setProfileSaving(false);
@@ -392,6 +400,25 @@ export default function SellerSettingsPage() {
                       placeholder="e.g. Espresso, Cappuccino, Pour over"
                       className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-300 outline-none" />
                     <p className="text-xs text-stone-400 mt-1">Separate with commas</p>
+                  </div>
+                  <div className="pt-2 border-t border-amber-100">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-3">Tip links</p>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-1">Bit — phone number</label>
+                        <input type="tel" value={tipBit} onChange={(e) => setTipBit(e.target.value)}
+                          placeholder="e.g. 0501234567"
+                          className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-300 outline-none" />
+                        <p className="text-xs text-stone-400 mt-1">Buyers will copy your number and send via the Bit app</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-1">PayPal — email address</label>
+                        <input type="email" value={tipPaypal} onChange={(e) => setTipPaypal(e.target.value)}
+                          placeholder="your@email.com"
+                          className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-300 outline-none" />
+                        <p className="text-xs text-stone-400 mt-1">Buyers will be sent directly to PayPal to pay you</p>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3 pt-1">
                     <button type="submit" disabled={profileSaving}

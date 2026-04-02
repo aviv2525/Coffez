@@ -13,6 +13,8 @@ export const createSellerProfileSchema = z.object({
   lat: z.number().min(-90).max(90).optional().nullable(),
   lng: z.number().min(-180).max(180).optional().nullable(),
   pickupDetails: z.string().max(500).optional().nullable(),
+  tipBit: z.string().max(300).optional().nullable(),
+  tipPaypal: z.string().max(300).optional().nullable(),
 });
 
 export const updateSellerProfileSchema = createSellerProfileSchema.partial();
