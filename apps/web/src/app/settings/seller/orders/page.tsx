@@ -11,10 +11,18 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '');
 
+const MILK_LABELS: Record<string, string> = {
+  regular: 'רגיל / Regular',
+  oat: 'שיבולת שועל / Oat',
+  soy: 'סויה / Soy',
+  almond: 'שקדים / Almond',
+};
+
 type Order = {
   id: string;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED';
   note: string | null;
+  milkOption: string | null;
   estimatedMinutes: number | null;
   createdAt: string;
   menuItem?: { title: string; price: number };
@@ -179,6 +187,9 @@ export default function SellerOrdersPage() {
                     <div>
                       <p className="font-semibold text-amber-950">{o.menuItem?.title ?? 'Order'}</p>
                       <p className="text-sm text-stone-500 mt-0.5">from {o.buyer?.fullName ?? '—'}</p>
+                      {o.milkOption && (
+                        <p className="text-sm text-amber-800 mt-1 font-medium">🥛 {MILK_LABELS[o.milkOption] ?? o.milkOption}</p>
+                      )}
                       {o.note && (
                         <p className="text-sm text-stone-600 mt-1 bg-stone-50 rounded-lg px-3 py-1.5 border border-stone-200">
                           Note: {o.note}
@@ -244,6 +255,9 @@ export default function SellerOrdersPage() {
                     <div>
                       <p className="font-semibold text-amber-950">{o.menuItem?.title ?? 'Order'}</p>
                       <p className="text-sm text-stone-500 mt-0.5">for {o.buyer?.fullName ?? '—'}</p>
+                      {o.milkOption && (
+                        <p className="text-sm text-amber-800 mt-1 font-medium">🥛 {MILK_LABELS[o.milkOption] ?? o.milkOption}</p>
+                      )}
                       {o.estimatedMinutes && (
                         <p className="text-xs text-green-700 mt-1 font-medium">⏱ {o.estimatedMinutes} min estimated</p>
                       )}

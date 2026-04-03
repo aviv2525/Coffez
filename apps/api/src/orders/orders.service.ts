@@ -57,6 +57,7 @@ export class OrdersService {
         menuItemId: input.menuItemId,
         status: PrismaOrderStatus.PENDING,
         note: input.note ?? null,
+        milkOption: input.milkOption ?? null,
         scheduledFor,
       },
       include: {
@@ -295,6 +296,7 @@ export class OrdersService {
       menuItemId: order.menuItemId,
       status: order.status,
       note: order.note,
+      milkOption: order.milkOption ?? null,
       scheduledFor: order.scheduledFor,
       estimatedMinutes: order.estimatedMinutes ?? null,
       createdAt: order.createdAt,

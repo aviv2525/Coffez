@@ -4,16 +4,19 @@ export declare const createOrderSchema: z.ZodObject<{
     sellerId: z.ZodString;
     menuItemId: z.ZodString;
     note: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    milkOption: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     scheduledFor: z.ZodNullable<z.ZodOptional<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     sellerId: string;
     menuItemId: string;
     note?: string | null | undefined;
+    milkOption?: string | null | undefined;
     scheduledFor?: string | null | undefined;
 }, {
     sellerId: string;
     menuItemId: string;
     note?: string | null | undefined;
+    milkOption?: string | null | undefined;
     scheduledFor?: string | null | undefined;
 }>;
 export declare const updateOrderStatusSchema: z.ZodObject<{

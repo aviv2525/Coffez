@@ -12,6 +12,7 @@ export const createOrderSchema = z.object({
   sellerId: z.string().uuid(),
   menuItemId: z.string().uuid(),
   note: z.string().max(500).optional().nullable(),
+  milkOption: z.string().optional().nullable(),
   scheduledFor: z.string().optional().nullable(), // ISO datetime string
 });
 

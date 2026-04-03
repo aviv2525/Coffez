@@ -207,7 +207,7 @@ export default function ProfilePage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-stone-800">Marketplace</p>
+                <p className="text-sm font-semibold text-stone-800">Find Coffez</p>
                 <p className="text-xs text-stone-400">Browse sellers & order coffee</p>
               </div>
               <svg className="w-4 h-4 text-stone-300 group-hover:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -522,7 +522,7 @@ export default function ProfilePage() {
               </svg>
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-stone-800">Marketplace</p>
+              <p className="text-sm font-semibold text-stone-800">Find Coffez</p>
               <p className="text-xs text-stone-400">Browse sellers & order coffee</p>
             </div>
             <svg className="w-4 h-4 text-stone-300 group-hover:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

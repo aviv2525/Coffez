@@ -35,6 +35,10 @@ export default function HomePage() {
 
         </div>
       </main>
+      <footer className="text-center py-4 text-xs text-stone-400 space-x-4">
+        <Link href="/privacy" className="hover:text-stone-600">Privacy Policy</Link>
+        <Link href="/terms" className="hover:text-stone-600">Terms of Service</Link>
+      </footer>
     </div>
   );
 }

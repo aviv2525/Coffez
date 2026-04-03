@@ -15,5 +15,8 @@ exports.createSellerProfileSchema = zod_1.z.object({
     lat: zod_1.z.number().min(-90).max(90).optional().nullable(),
     lng: zod_1.z.number().min(-180).max(180).optional().nullable(),
     pickupDetails: zod_1.z.string().max(500).optional().nullable(),
+    tipBit: zod_1.z.string().max(300).optional().nullable(),
+    tipPaypal: zod_1.z.string().max(300).optional().nullable(),
+    tier: zod_1.z.enum(['HOME', 'BUSINESS']).optional(),
 });
 exports.updateSellerProfileSchema = exports.createSellerProfileSchema.partial();

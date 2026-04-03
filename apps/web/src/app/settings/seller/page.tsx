@@ -26,6 +26,7 @@ type SellerProfile = {
   isOnline: boolean;
   tipBit: string | null;
   tipPaypal: string | null;
+  milkOptions: string[];
 };
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
@@ -106,6 +107,7 @@ export default function SellerSettingsPage() {
   const [drinkTypes, setDrinkTypes] = useState('');
   const [tipBit, setTipBit] = useState('');
   const [tipPaypal, setTipPaypal] = useState('');
+  const [milkOptions, setMilkOptions] = useState<string[]>([]);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState<string | null>(null);
 
@@ -157,6 +159,7 @@ export default function SellerSettingsPage() {
     setIsOnline(p.isOnline ?? false);
     setTipBit(p.tipBit ?? '');
     setTipPaypal(p.tipPaypal ?? '');
+    setMilkOptions(p.milkOptions ?? []);
   }
 
   async function uploadFile(file: File) {
@@ -204,6 +207,7 @@ export default function SellerSettingsPage() {
         pickupDetails: pickupDetails.trim() || null,
         tipBit: tipBit.trim() || null,
         tipPaypal: tipPaypal.trim() || null,
+        milkOptions,
       }),
     });
     setProfileSaving(false);
@@ -420,6 +424,36 @@ export default function SellerSettingsPage() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Milk options */}
+                  <div className="bg-white rounded-2xl border border-amber-200/80 p-5">
+                    <h3 className="text-sm font-semibold text-stone-700 mb-3">Milk options — אפשרויות חלב</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { value: 'regular', label: 'רגיל / Regular' },
+                        { value: 'oat', label: 'שיבולת שועל / Oat' },
+                        { value: 'soy', label: 'סויה / Soy' },
+                        { value: 'almond', label: 'שקדים / Almond' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setMilkOptions((prev) =>
+                            prev.includes(opt.value) ? prev.filter((v) => v !== opt.value) : [...prev, opt.value]
+                          )}
+                          className={`px-3 py-2 rounded-xl text-sm border transition-colors ${
+                            milkOptions.includes(opt.value)
+                              ? 'bg-amber-900 text-amber-50 border-amber-900'
+                              : 'border-amber-200 text-stone-700 hover:bg-amber-50'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-stone-400 mt-2">בחר את אפשרויות החלב שיש אצלך</p>
+                  </div>
+
                   <div className="flex items-center gap-3 pt-1">
                     <button type="submit" disabled={profileSaving}
                       className="py-2.5 px-6 rounded-xl text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 disabled:opacity-50 transition-colors">

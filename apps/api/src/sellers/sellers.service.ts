@@ -144,6 +144,7 @@ export class SellersService {
         ...((input as any).webhookUrl !== undefined && { webhookUrl: (input as any).webhookUrl }),
         ...((input as any).tipBit !== undefined && { tipBit: (input as any).tipBit }),
         ...((input as any).tipPaypal !== undefined && { tipPaypal: (input as any).tipPaypal }),
+        ...((input as any).milkOptions !== undefined && { milkOptions: (input as any).milkOptions }),
       },
     });
   }
@@ -191,6 +192,7 @@ export class SellersService {
       tier: seller.tier ?? 'HOME',
       tipBit: seller.tipBit ?? null,
       tipPaypal: seller.tipPaypal ?? null,
+      milkOptions: seller.milkOptions ?? [],
       coverMedia: firstMedia ? { id: firstMedia.id, type: firstMedia.type, url: firstMedia.url, thumbnailUrl: firstMedia.thumbnailUrl } : null,
       avgRating,
       reviewCount,

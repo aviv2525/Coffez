@@ -69,12 +69,12 @@ function SellerCard({
         active ? 'border-amber-500 shadow-amber-200 ring-2 ring-amber-400/30' : 'border-amber-200/80 hover:shadow-md hover:border-amber-300/60'
       }`}
     >
-      <div className="aspect-[16/9] bg-amber-50 relative overflow-hidden">
+      <Link href={`/seller/${s.userId}`} className="block aspect-[16/9] bg-amber-50 relative overflow-hidden">
         {coverUrl ? (
           s.coverMedia?.type === 'VIDEO' ? (
             <video src={coverUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" />
           ) : (
-            <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+            <img src={coverUrl} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
           )
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -89,7 +89,7 @@ function SellerCard({
             Online
           </span>
         )}
-      </div>
+      </Link>
 
       <div className="p-4 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-2">
@@ -216,8 +216,23 @@ export default function MarketplacePage() {
     return (
       <div className="min-h-screen bg-amber-50/40">
         <Header />
-        <div className="flex items-center justify-center py-24">
-          <div className="animate-pulse h-8 w-48 bg-amber-100 rounded" />
+        <div className="container mx-auto px-4 py-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-amber-200/80 overflow-hidden animate-pulse">
+                <div className="aspect-[16/9] bg-amber-100" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-amber-100 rounded w-2/3" />
+                  <div className="h-3 bg-amber-50 rounded w-1/2" />
+                  <div className="h-3 bg-amber-50 rounded w-full" />
+                  <div className="flex gap-2 pt-2">
+                    <div className="h-8 bg-amber-100 rounded-xl flex-1" />
+                    <div className="h-8 bg-amber-50 rounded-xl flex-1" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

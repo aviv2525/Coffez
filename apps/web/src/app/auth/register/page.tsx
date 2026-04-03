@@ -29,7 +29,7 @@ export default function RegisterPage() {
       return;
     }
     setAuthToken(data.accessToken);
-    router.push('/orders');
+    router.push('/marketplace');
     router.refresh();
   }
 

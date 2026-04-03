@@ -25,7 +25,7 @@ export default function LoginPage() {
       setError(loginError || 'Login failed');
       return;
     }
-    router.push('/orders');
+    router.push('/marketplace');
     router.refresh();
   }
 

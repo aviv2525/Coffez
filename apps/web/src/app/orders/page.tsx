@@ -45,18 +45,25 @@ function TipButtons({ tipBit, tipPaypal }: { tipBit?: string | null; tipPaypal?:
           className="text-xs font-medium px-3 py-1.5 rounded-lg bg-[#003087] text-white hover:opacity-90 transition-opacity">
           Tip with PayPal
         </button>
-      </div>
-      {tipBit && !copied && (
-        <p className="text-xs text-stone-400 mt-1.5">Bit: tap to copy number, then open the Bit app</p>
+      </div>      {tipBit && (
+        <p className="text-xs text-stone-400 mt-1.5">{copied ? 'Number copied — open Bit app to send' : 'Tap to copy number, then open Bit'}</p>
       )}
     </div>
   );
 }
 
+const MILK_LABELS: Record<string, string> = {
+  regular: 'רגיל / Regular',
+  oat: 'שיבולת שועל / Oat',
+  soy: 'סויה / Soy',
+  almond: 'שקדים / Almond',
+};
+
 type Order = {
   id: string;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED';
   note: string | null;
+  milkOption: string | null;
   estimatedMinutes: number | null;
   createdAt: string;
   menuItem?: { title: string; price: number };
@@ -204,6 +211,9 @@ export default function OrdersPage() {
                             <Link href={`/seller/${o.seller.userId}`} className="text-sm text-amber-800 hover:underline mt-0.5 block">
                               {o.seller.displayName}
                             </Link>
+                          )}
+                          {o.milkOption && (
+                            <p className="text-xs text-amber-700 mt-1">🥛 {MILK_LABELS[o.milkOption] ?? o.milkOption}</p>
                           )}
                           {o.note && (
                             <p className="text-xs text-stone-500 mt-1">Note: {o.note}</p>

@@ -11,19 +11,19 @@ model User {
   id                      String                   @id @default(uuid())
   email                   String                   @unique
   passwordHash            String?                  @map("password_hash")
-  googleId                String?                  @unique @map("google_id")
   fullName                String                   @map("full_name")
   role                    UserRole                 @default(USER)
   emailVerifiedAt         DateTime?                @map("email_verified_at")
   createdAt               DateTime                 @default(now()) @map("created_at")
   updatedAt               DateTime                 @updatedAt @map("updated_at")
+  googleId                String?                  @unique @map("google_id")
   emailVerificationTokens EmailVerificationToken[]
   ordersAsBuyer           Order[]                  @relation("BuyerOrders")
   passwordResetTokens     PasswordResetToken[]
   pushSubscriptions       PushSubscription[]
   refreshTokens           RefreshToken[]
-  sellerProfile           SellerProfile?
   reviews                 Review[]
+  sellerProfile           SellerProfile?
 }
 
 model RefreshToken {
@@ -54,55 +54,53 @@ model PasswordResetToken {
 }
 
 model SellerProfile {
-  userId       String         @id @map("user_id")
-  displayName  String         @map("display_name")
-  bio          String?
-  categories   String[]       @default([])
-  locationText String?        @map("location_text")
-  avatarUrl    String?        @map("avatar_url")
-
-  beans        String[]       @default([])
-  drinkTypes   String[]       @default([])
-
-  machineType    String?        @map("machine_type")
-  openingHours   String?        @map("opening_hours")
+  userId         String          @id @map("user_id")
+  displayName    String          @map("display_name")
+  bio            String?
+  categories     String[]        @default([])
+  locationText   String?         @map("location_text")
+  avatarUrl      String?         @map("avatar_url")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  beans          String[]        @default([])
+  drinkTypes     String[]        @default([])
+  machineType    String?         @map("machine_type")
+  openingHours   String?         @map("opening_hours")
   lat            Float?
   lng            Float?
-  pickupDetails  String?        @map("pickup_details")
-  isOnline       Boolean        @default(false) @map("is_online")
-  status         String         @default("PENDING")
-  tier           String         @default("HOME")
-  phone          String?        @map("phone")
-  city           String?        @map("city")
-  street         String?        @map("street")
-  webhookUrl     String?        @map("webhook_url")
-  tipBit         String?        @map("tip_bit")
-  tipPaypal      String?        @map("tip_paypal")
-
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt @map("updated_at")
-  menu         MenuItem[]
-  orders       Order[]        @relation("SellerOrders")
-  media        ProfileMedia[]
-  reviews      Review[]
+  pickupDetails  String?         @map("pickup_details")
+  isOnline       Boolean         @default(false) @map("is_online")
+  webhookUrl     String?         @map("webhook_url")
+  tipBit         String?         @map("tip_bit")
+  tipPaypal      String?         @map("tip_paypal")
+  status         String          @default("PENDING")
+  tier           String          @default("HOME")
+  city           String?         @map("city")
+  phone          String?         @map("phone")
+  street         String?         @map("street")
+  milkOptions    String[]        @default([])
+  menu           MenuItem[]
+  orders         Order[]         @relation("SellerOrders")
   posIntegration PosIntegration?
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media          ProfileMedia[]
+  reviews        Review[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model MenuItem {
-  id          String        @id @default(uuid())
-  sellerId    String        @map("seller_id")
+  id          String            @id @default(uuid())
+  sellerId    String            @map("seller_id")
   title       String
-  category    String        @default("General")
   description String?
-  price       Decimal       @db.Decimal(10, 2)
-  imageUrl    String?       @map("image_url")
-  isAvailable Boolean       @default(true) @map("is_available")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  seller      SellerProfile    @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
-  orders      Order[]
+  price       Decimal           @db.Decimal(10, 2)
+  imageUrl    String?           @map("image_url")
+  isAvailable Boolean           @default(true) @map("is_available")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  category    String            @default("General")
+  seller      SellerProfile     @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
   mappings    MenuItemMapping[]
+  orders      Order[]
 }
 
 model ProfileMedia {
@@ -120,20 +118,21 @@ model ProfileMedia {
 }
 
 model Order {
-  id           String        @id @default(uuid())
-  buyerId      String        @map("buyer_id")
-  sellerId     String        @map("seller_id")
-  menuItemId   String        @map("menu_item_id")
+  id               String        @id @default(uuid())
+  buyerId          String        @map("buyer_id")
+  sellerId         String        @map("seller_id")
+  menuItemId       String        @map("menu_item_id")
   status           OrderStatus   @default(PENDING)
   note             String?
   scheduledFor     DateTime?     @map("scheduled_for")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
   estimatedMinutes Int?          @map("estimated_minutes")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
-  buyer        User          @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
-  menuItem     MenuItem      @relation(fields: [menuItemId], references: [id])
-  seller       SellerProfile @relation("SellerOrders", fields: [sellerId], references: [userId], onDelete: Cascade)
-  posLogs      OrderPosLog[]
+  milkOption       String?       @map("milk_option")
+  buyer            User          @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
+  menuItem         MenuItem      @relation(fields: [menuItemId], references: [id])
+  seller           SellerProfile @relation("SellerOrders", fields: [sellerId], references: [userId], onDelete: Cascade)
+  posLogs          OrderPosLog[]
 }
 
 model PushSubscription {
@@ -148,34 +147,30 @@ model PushSubscription {
   @@unique([userId, endpoint])
 }
 
-// ── POS Integration (Layer 2) ─────────────────────────────────────────────
-
 model PosIntegration {
-  id          String   @id @default(uuid())
-  sellerId    String   @unique @map("seller_id")
-  provider    String   // e.g. "beecomm", "generic_webhook", "custom"
-  apiUrl      String   @map("api_url")
-  apiKey      String   @map("api_key")
-  isActive    Boolean  @default(true) @map("is_active")
-  meta        Json?    // extra provider-specific config
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  seller      SellerProfile  @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
-  mappings    MenuItemMapping[]
+  id        String            @id @default(uuid())
+  sellerId  String            @unique @map("seller_id")
+  provider  String
+  apiUrl    String            @map("api_url")
+  apiKey    String            @map("api_key")
+  isActive  Boolean           @default(true) @map("is_active")
+  meta      Json?
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+  mappings  MenuItemMapping[]
+  seller    SellerProfile     @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
 }
 
 model MenuItemMapping {
-  id              String   @id @default(uuid())
-  posIntegrationId String  @map("pos_integration_id")
-  menuItemId      String   @map("menu_item_id")
-  externalId      String   @map("external_id")   // ID in POS system
-  externalPrice   Decimal? @map("external_price") @db.Decimal(10, 2)
-  isEnabled       Boolean  @default(true) @map("is_enabled")
-  createdAt       DateTime @default(now()) @map("created_at")
-
-  posIntegration  PosIntegration @relation(fields: [posIntegrationId], references: [id], onDelete: Cascade)
-  menuItem        MenuItem       @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  id               String         @id @default(uuid())
+  posIntegrationId String         @map("pos_integration_id")
+  menuItemId       String         @map("menu_item_id")
+  externalId       String         @map("external_id")
+  externalPrice    Decimal?       @map("external_price") @db.Decimal(10, 2)
+  isEnabled        Boolean        @default(true) @map("is_enabled")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  menuItem         MenuItem       @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  posIntegration   PosIntegration @relation(fields: [posIntegrationId], references: [id], onDelete: Cascade)
 
   @@unique([posIntegrationId, menuItemId])
 }
@@ -191,7 +186,6 @@ model OrderPosLog {
   success         Boolean  @default(false)
   errorMessage    String?  @map("error_message")
   createdAt       DateTime @default(now()) @map("created_at")
-
   order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
@@ -203,9 +197,8 @@ model Review {
   comment   String?
   createdAt DateTime      @default(now()) @map("created_at")
   updatedAt DateTime      @updatedAt @map("updated_at")
-
-  seller    SellerProfile @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
   buyer     User          @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  seller    SellerProfile @relation(fields: [sellerId], references: [userId], onDelete: Cascade)
 
   @@unique([sellerId, buyerId])
 }

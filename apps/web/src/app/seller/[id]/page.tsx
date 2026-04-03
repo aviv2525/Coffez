@@ -418,8 +418,11 @@ export default function SellerPage() {
                   Tip with PayPal
                 </button>
               </div>
+              {seller.tipBit && bitCopied && (
+                <p className="text-xs text-green-600 mt-2">המספר הועתק — פתח את אפליקציית Bit והעבר</p>
+              )}
               {seller.tipBit && !bitCopied && (
-                <p className="text-xs text-stone-400 mt-2">Bit: tap the button to copy the phone number, then open Bit app</p>
+                <p className="text-xs text-stone-400 mt-2">לחץ להעתקת המספר, ואז פתח את Bit</p>
               )}
             </div>
           </div>
@@ -498,8 +501,13 @@ export default function SellerPage() {
                 No menu items yet.
               </div>
             ) : (() => {
+              const CATEGORY_LABEL: Record<string, string> = {
+                HOT: 'HOT — חם ☕',
+                COLD: 'COLD — קר 🧊',
+                GENERAL: 'General',
+              };
               const grouped = menu.reduce<Record<string, MenuItem[]>>((acc, item) => {
-                const cat = item.category || 'General';
+                const cat = item.category || 'HOT';
                 if (!acc[cat]) acc[cat] = [];
                 acc[cat].push(item);
                 return acc;
@@ -509,7 +517,7 @@ export default function SellerPage() {
                 <div className="space-y-6">
                   {categories.map((cat) => (
                     <div key={cat}>
-                      <h3 className="text-sm font-semibold text-amber-800 uppercase tracking-wider mb-3">{cat}</h3>
+                      <h3 className="text-sm font-semibold text-amber-800 uppercase tracking-wider mb-3">{CATEGORY_LABEL[cat] ?? cat}</h3>
                       <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
                         {grouped[cat].map((item) => (
                           <div key={item.id} className="bg-white rounded-xl border border-amber-200/80 shadow-sm flex flex-col overflow-hidden shrink-0 w-52 snap-start">

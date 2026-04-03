@@ -12,6 +12,9 @@ export declare const createSellerProfileSchema: z.ZodObject<{
     lat: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     lng: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     pickupDetails: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    tipBit: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    tipPaypal: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    tier: z.ZodOptional<z.ZodEnum<["HOME", "BUSINESS"]>>;
 }, "strip", z.ZodTypeAny, {
     displayName: string;
     categories: string[];
@@ -25,6 +28,9 @@ export declare const createSellerProfileSchema: z.ZodObject<{
     lat?: number | null | undefined;
     lng?: number | null | undefined;
     pickupDetails?: string | null | undefined;
+    tipBit?: string | null | undefined;
+    tipPaypal?: string | null | undefined;
+    tier?: "HOME" | "BUSINESS" | undefined;
 }, {
     displayName: string;
     bio?: string | null | undefined;
@@ -38,6 +44,9 @@ export declare const createSellerProfileSchema: z.ZodObject<{
     lat?: number | null | undefined;
     lng?: number | null | undefined;
     pickupDetails?: string | null | undefined;
+    tipBit?: string | null | undefined;
+    tipPaypal?: string | null | undefined;
+    tier?: "HOME" | "BUSINESS" | undefined;
 }>;
 export declare const updateSellerProfileSchema: z.ZodObject<{
     displayName: z.ZodOptional<z.ZodString>;
@@ -52,6 +61,9 @@ export declare const updateSellerProfileSchema: z.ZodObject<{
     lat: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodNumber>>>;
     lng: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodNumber>>>;
     pickupDetails: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    tipBit: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    tipPaypal: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    tier: z.ZodOptional<z.ZodOptional<z.ZodEnum<["HOME", "BUSINESS"]>>>;
 }, "strip", z.ZodTypeAny, {
     displayName?: string | undefined;
     bio?: string | null | undefined;
@@ -65,6 +77,9 @@ export declare const updateSellerProfileSchema: z.ZodObject<{
     lat?: number | null | undefined;
     lng?: number | null | undefined;
     pickupDetails?: string | null | undefined;
+    tipBit?: string | null | undefined;
+    tipPaypal?: string | null | undefined;
+    tier?: "HOME" | "BUSINESS" | undefined;
 }, {
     displayName?: string | undefined;
     bio?: string | null | undefined;
@@ -78,6 +93,9 @@ export declare const updateSellerProfileSchema: z.ZodObject<{
     lat?: number | null | undefined;
     lng?: number | null | undefined;
     pickupDetails?: string | null | undefined;
+    tipBit?: string | null | undefined;
+    tipPaypal?: string | null | undefined;
+    tier?: "HOME" | "BUSINESS" | undefined;
 }>;
 export type CreateSellerProfileInput = z.infer<typeof createSellerProfileSchema>;
 export type UpdateSellerProfileInput = z.infer<typeof updateSellerProfileSchema>;

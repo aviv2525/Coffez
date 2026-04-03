@@ -16,7 +16,7 @@ export function Header() {
         {/* Desktop nav — hidden on mobile (BottomNav handles mobile) */}
         <nav className="hidden md:flex gap-4 items-center">
           <Link href="/marketplace" className="text-amber-900/80 hover:text-amber-950 text-sm">
-            Marketplace
+            Find Coffez
           </Link>
           {isLoading ? null : isAuthenticated && user ? (
             <>

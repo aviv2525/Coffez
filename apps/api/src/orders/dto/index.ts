@@ -18,6 +18,11 @@ export class CreateOrderDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  milkOption?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   scheduledFor?: string | null;
 }
 

@@ -13,6 +13,7 @@ exports.createOrderSchema = zod_1.z.object({
     sellerId: zod_1.z.string().uuid(),
     menuItemId: zod_1.z.string().uuid(),
     note: zod_1.z.string().max(500).optional().nullable(),
+    milkOption: zod_1.z.string().optional().nullable(),
     scheduledFor: zod_1.z.string().optional().nullable(), // ISO datetime string
 });
 exports.updateOrderStatusSchema = zod_1.z.object({

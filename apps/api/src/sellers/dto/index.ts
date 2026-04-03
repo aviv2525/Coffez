@@ -5,7 +5,7 @@ export class CreateSellerProfileDto {
   @ApiProperty()
   @IsString()
   @MaxLength(100)
-  displayName: string;
+  displayName!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -181,4 +181,22 @@ export class UpdateSellerProfileDto {
   @IsOptional()
   @IsUrl()
   webhookUrl?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  tipBit?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  tipPaypal?: string | null;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  milkOptions?: string[];
 }

@@ -15,11 +15,19 @@ type MenuItem = {
   isAvailable: boolean;
 };
 
+const MILK_LABELS: Record<string, string> = {
+  regular: 'רגיל / Regular',
+  oat: 'שיבולת שועל / Oat',
+  soy: 'סויה / Soy',
+  almond: 'שקדים / Almond',
+};
+
 type Seller = {
   userId: string;
   displayName: string;
   bio: string | null;
   avatarUrl: string | null;
+  milkOptions?: string[];
 };
 
 export default function OrderPage() {
@@ -30,6 +38,7 @@ export default function OrderPage() {
   const menuItemId = searchParams.get('item');
 
   const [note, setNote] = useState('');
+  const [milkOption, setMilkOption] = useState<string | null>(null);
 
   const { data: menuItem, isLoading: loadingMenuItem } = useQuery({
     queryKey: ['menu-item', sellerId, menuItemId],
@@ -76,7 +85,8 @@ export default function OrderPage() {
       sellerId,
       menuItemId,
       note: note.trim() || null,
-    });
+      milkOption: milkOption || null,
+    } as any);
   };
 
   if (loadingMenuItem || loadingSeller) {
@@ -136,6 +146,36 @@ export default function OrderPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-amber-950 mb-2">
+                Milk — חלב
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(MILK_LABELS).map(([opt, label]) => {
+                  const available = seller.milkOptions?.includes(opt) ?? false;
+                  const selected = milkOption === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      disabled={!available}
+                      onClick={() => setMilkOption(selected ? null : opt)}
+                      className={`px-4 py-2 rounded-xl text-sm border transition-colors flex flex-col items-center ${
+                        !available
+                          ? 'border-stone-200 text-stone-300 bg-stone-50 cursor-not-allowed'
+                          : selected
+                          ? 'bg-amber-900 text-amber-50 border-amber-900'
+                          : 'border-amber-200 text-stone-700 hover:bg-amber-50'
+                      }`}
+                    >
+                      {label}
+                      {!available && <span className="text-[10px] text-stone-300 mt-0.5">אין במלאי</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div>
               <label htmlFor="note" className="block text-sm font-medium text-amber-950 mb-2">
                 Special instructions (optional)
