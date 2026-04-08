@@ -69,6 +69,7 @@ export default function OrderPage() {
         method: 'POST',
         body: JSON.stringify(data),
       });
+      if (res.status === 401) throw new Error('UNAUTHORIZED');
       if (res.error) throw new Error(res.error);
       return res.data;
     },
@@ -199,9 +200,25 @@ export default function OrderPage() {
             </button>
 
             {createOrderMutation.error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
-                Failed to place order: {createOrderMutation.error.message}
-              </div>
+              createOrderMutation.error.message === 'UNAUTHORIZED' ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                  <p className="text-sm font-medium text-amber-900 mb-1">כדי להזמין יש ליצור חשבון</p>
+                  <p className="text-xs text-stone-500 mb-3">You need an account to place an order</p>
+                  <Link
+                    href={`/auth/register?redirect=/seller/${sellerId}/order?item=${menuItemId}`}
+                    className="inline-block px-5 py-2 rounded-xl bg-amber-900 text-amber-50 text-sm font-medium hover:bg-amber-800 transition-colors"
+                  >
+                    Create account →
+                  </Link>
+                  <Link href="/auth/login" className="block mt-2 text-xs text-amber-800 hover:underline">
+                    Already have an account? Log in
+                  </Link>
+                </div>
+              ) : (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+                  Failed to place order: {createOrderMutation.error.message}
+                </div>
+              )
             )}
           </form>
         </div>
