@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Header } from '@/components/Header';
+import { CoffeeLogo } from '@/components/CoffeeLogo';
 
 const SellerMap = dynamic(
   () => import('@/components/SellerMap').then((m) => m.SellerMap),
@@ -24,6 +25,7 @@ type Seller = {
   lng: number | null;
   beans?: string[];
   drinkTypes?: string[];
+  milkOptions?: string[];
   machineType?: string | null;
   openingHours?: string | null;
   pickupDetails?: string | null;
@@ -78,9 +80,7 @@ function SellerCard({
           )
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-14 h-14 text-amber-200" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3z"/>
-            </svg>
+            <CoffeeLogo className="w-14 h-14 text-amber-200" />
           </div>
         )}
         {s.isOnline && (
@@ -112,6 +112,65 @@ function SellerCard({
 
         {s.locationText && <p className="text-xs text-amber-800/80 mt-1">📍 {s.locationText}</p>}
         {s.bio && <p className="text-sm text-stone-500 mt-1.5 line-clamp-2">{s.bio}</p>}
+
+        {(s.beans?.length || s.drinkTypes?.length || s.milkOptions?.length || s.machineType || s.openingHours || s.pickupDetails) && (
+          <div className="mt-3 pt-3 border-t border-stone-100 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+            {/* Row 1: Beans | Milk */}
+            {s.beans?.length ? (
+              <div>
+                <p className="font-semibold text-amber-700 uppercase tracking-wide mb-1">Beans</p>
+                <div className="flex flex-wrap gap-1">
+                  {s.beans.slice(0, 2).map((b) => (
+                    <span key={b} className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">{b}</span>
+                  ))}
+                  {s.beans.length > 2 && <span className="bg-amber-50 text-amber-400 px-2 py-0.5 rounded-full">···</span>}
+                </div>
+              </div>
+            ) : <div />}
+            {s.milkOptions?.length ? (
+              <div>
+                <p className="font-semibold text-stone-500 uppercase tracking-wide mb-1">Milk</p>
+                <div className="flex flex-wrap gap-1">
+                  {s.milkOptions.slice(0, 2).map((m) => (
+                    <span key={m} className="border border-stone-300 text-stone-600 px-2 py-0.5 rounded-full">{m}</span>
+                  ))}
+                  {s.milkOptions.length > 2 && <span className="border border-stone-200 text-stone-400 px-2 py-0.5 rounded-full">···</span>}
+                </div>
+              </div>
+            ) : <div />}
+            {/* Row 2: Hours | Drinks */}
+            {s.openingHours && (
+              <div>
+                <p className="font-semibold text-stone-500 uppercase tracking-wide mb-0.5">Hours</p>
+                <p className="text-stone-600 whitespace-pre-line">{s.openingHours}</p>
+              </div>
+            )}
+            {s.drinkTypes?.length ? (
+              <div>
+                <p className="font-semibold text-stone-500 uppercase tracking-wide mb-1">Drinks</p>
+                <div className="flex flex-wrap gap-1">
+                  {s.drinkTypes.slice(0, 2).map((d) => (
+                    <span key={d} className="border border-stone-300 text-stone-600 px-2 py-0.5 rounded-full">{d}</span>
+                  ))}
+                  {s.drinkTypes.length > 2 && <span className="border border-stone-200 text-stone-400 px-2 py-0.5 rounded-full">···</span>}
+                </div>
+              </div>
+            ) : <div />}
+            {/* Row 3: Pickup | Equipment */}
+            {s.pickupDetails && (
+              <div>
+                <p className="font-semibold text-stone-500 uppercase tracking-wide mb-0.5">Pickup</p>
+                <p className="text-stone-600">{s.pickupDetails}</p>
+              </div>
+            )}
+            {s.machineType && (
+              <div>
+                <p className="font-semibold text-stone-500 uppercase tracking-wide mb-0.5">Equipment</p>
+                <p className="text-stone-600">{s.machineType}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="pt-3 flex gap-2 border-t border-stone-100 mt-3">
           <Link

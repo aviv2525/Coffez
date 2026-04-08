@@ -199,4 +199,19 @@ export class UpdateSellerProfileDto {
   @IsArray()
   @IsString({ each: true })
   milkOptions?: string[];
+
+  @ApiPropertyOptional({ type: [Object] })
+  @IsOptional()
+  @IsArray()
+  equipmentItems?: { id: string; name: string; description: string; imageUrl: string | null }[];
+
+  @ApiPropertyOptional({ type: [Object] })
+  @IsOptional()
+  @IsArray()
+  beanItems?: { id: string; name: string; description: string; imageUrl: string | null }[];
+
+  @ApiPropertyOptional({ type: [Object] })
+  @IsOptional()
+  @IsArray()
+  drinkItems?: { id: string; name: string; description: string; imageUrl: string | null }[];
 }

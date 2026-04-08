@@ -233,7 +233,7 @@ export default function ProfilePage() {
     const pending = (sellerOrders ?? []).filter((o) => o.status === 'PENDING');
     const recent = (sellerOrders ?? []).filter((o) =>
       ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(o.status)
-    ).slice(0, 5);
+    ).slice(0, 3);
 
     return (
       <div className="min-h-screen bg-gray-50">
@@ -377,7 +377,12 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl border border-amber-200/80 overflow-hidden mb-4">
               <div className="px-5 py-3 border-b border-amber-100 flex items-center justify-between">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-stone-400">Recent orders received</h2>
-                <Link href="/settings/seller/orders" className="text-xs text-amber-800 hover:underline">See all</Link>
+                <Link href="/settings/seller/orders" className="text-xs text-amber-800 hover:underline flex items-center gap-0.5">
+                  See all
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
               </div>
               <div className="divide-y divide-amber-50">
                 {recent.map((o) => (

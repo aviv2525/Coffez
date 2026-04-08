@@ -64,7 +64,7 @@ export default function OrderPage() {
   });
 
   const createOrderMutation = useMutation({
-    mutationFn: async (data: { sellerId: string; menuItemId: string; note: string | null }) => {
+    mutationFn: async (data: { sellerId: string; menuItemId: string; note: string | null; milkOption: string | null }) => {
       const res = await apiFetch('/orders', {
         method: 'POST',
         body: JSON.stringify(data),
@@ -86,7 +86,7 @@ export default function OrderPage() {
       menuItemId,
       note: note.trim() || null,
       milkOption: milkOption || null,
-    } as any);
+    });
   };
 
   if (loadingMenuItem || loadingSeller) {

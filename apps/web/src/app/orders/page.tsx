@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { useOrderStream } from '@/hooks/useOrderStream';
@@ -148,6 +149,7 @@ function OrderStatusStepper({ status, estimatedMinutes }: { status: Order['statu
 
 export default function OrdersPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const qc = useQueryClient();
 
   useOrderStream(!!user);
@@ -156,6 +158,7 @@ export default function OrdersPage() {
     queryKey: ['orders-my'],
     queryFn: async () => {
       const res = await apiFetch<{ data: Order[] }>('/orders/my');
+      if (res.status === 401) { router.replace('/auth/login'); return null; }
       if (res.error) throw new Error(res.error);
       return res.data!;
     },

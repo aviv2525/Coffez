@@ -81,6 +81,26 @@ export default function SellerMediaPage() {
     if (res.error || res.status >= 400) { setMedia(prev); setError('Failed to delete.'); }
   }
 
+  async function moveItem(idx: number, dir: -1 | 1) {
+    const sorted = [...media].sort((a, b) => a.sortOrder - b.sortOrder);
+    const swapIdx = idx + dir;
+    if (swapIdx < 0 || swapIdx >= sorted.length) return;
+
+    const a = sorted[idx];
+    const b = sorted[swapIdx];
+    const newSorted = sorted.map((item) => {
+      if (item.id === a.id) return { ...item, sortOrder: b.sortOrder };
+      if (item.id === b.id) return { ...item, sortOrder: a.sortOrder };
+      return item;
+    });
+    setMedia(newSorted);
+
+    await Promise.all([
+      apiFetch(`/sellers/me/media/${a.id}`, { method: 'PATCH', body: JSON.stringify({ sortOrder: b.sortOrder }) }),
+      apiFetch(`/sellers/me/media/${b.id}`, { method: 'PATCH', body: JSON.stringify({ sortOrder: a.sortOrder }) }),
+    ]);
+  }
+
   if (loadState === 'loading') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -183,25 +203,61 @@ export default function SellerMediaPage() {
             <p className="text-stone-500">No photos yet. Add your first one above.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {media.map((item) => (
-              <div key={item.id} className="relative group rounded-xl overflow-hidden aspect-square bg-amber-50 border border-amber-200/80">
-                {item.type === 'IMAGE' ? (
-                  <img src={item.url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <video src={item.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
-                )}
-                <button
-                  onClick={() => deleteItem(item.id)}
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>
+          <>
+            <p className="text-xs text-stone-400 mb-3">
+              The <span className="font-semibold text-amber-800">first photo</span> appears as your profile hero image (when no cover image is set). Use ↑ ↓ to reorder.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[...media].sort((a, b) => a.sortOrder - b.sortOrder).map((item, idx, arr) => (
+                <div key={item.id} className="relative group rounded-xl overflow-hidden aspect-square bg-amber-50 border border-amber-200/80">
+                  {idx === 0 && (
+                    <div className="absolute top-2 left-2 z-10 bg-amber-900/80 text-amber-50 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                      1st
+                    </div>
+                  )}
+                  {item.type === 'IMAGE' ? (
+                    <img src={item.url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <video src={item.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                  )}
+                  {/* Controls */}
+                  <div className="absolute bottom-0 inset-x-0 flex items-center justify-between px-1.5 py-1.5 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => moveItem(idx, -1)}
+                        disabled={idx === 0}
+                        className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center disabled:opacity-30 transition-colors"
+                        title="Move up"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => moveItem(idx, 1)}
+                        disabled={idx === arr.length - 1}
+                        className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center disabled:opacity-30 transition-colors"
+                        title="Move down"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => deleteItem(item.id)}
+                      className="w-7 h-7 rounded-lg bg-white/20 hover:bg-red-600 text-white flex items-center justify-center transition-colors"
+                      title="Delete"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </main>
     </div>

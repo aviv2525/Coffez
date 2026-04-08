@@ -79,6 +79,9 @@ model SellerProfile {
   phone          String?         @map("phone")
   street         String?         @map("street")
   milkOptions    String[]        @default([])
+  equipmentItems Json            @default("[]") @map("equipment_items")
+  beanItems      Json            @default("[]") @map("bean_items")
+  drinkItems     Json            @default("[]") @map("drink_items")
   menu           MenuItem[]
   orders         Order[]         @relation("SellerOrders")
   posIntegration PosIntegration?

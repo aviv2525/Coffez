@@ -11,13 +11,18 @@ export default function GoogleCallbackPage() {
 
   useEffect(() => {
     async function complete() {
-      // Cookie was set by the API. Exchange it for an access token then load user.
-      const { data } = await apiFetch<{ accessToken: string }>('/auth/refresh', {
-        method: 'POST',
-      });
-      if (data?.accessToken) setAuthToken(data.accessToken);
-      await refreshUser();
-      router.replace('/profile');
+      try {
+        // Cookie was set by the API. Exchange it for an access token then load user.
+        const { data } = await apiFetch<{ accessToken: string }>('/auth/refresh', {
+          method: 'POST',
+        });
+        if (!data?.accessToken) throw new Error('No token');
+        setAuthToken(data.accessToken);
+        await refreshUser();
+        router.replace('/profile');
+      } catch {
+        router.replace('/auth/login');
+      }
     }
     complete();
   // eslint-disable-next-line react-hooks/exhaustive-deps

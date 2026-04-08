@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { CoffeeLogo } from '@/components/CoffeeLogo';
 
 type MenuItem = {
   id: string;
@@ -272,7 +273,7 @@ export default function SellerPage() {
     );
   }
 
-  const heroUrl = media[0]?.url ?? seller.coverMedia?.url ?? seller.avatarUrl ?? null;
+  const heroUrl = seller.avatarUrl ?? media[0]?.url ?? seller.coverMedia?.url ?? null;
   const hasBeans = (seller.beans ?? []).length > 0;
   const hasDrinks = (seller.drinkTypes ?? []).length > 0;
   // Only IMAGE items are clickable in lightbox
@@ -525,9 +526,7 @@ export default function SellerPage() {
                               <img src={item.imageUrl} alt={item.title} className="w-full h-32 object-cover" />
                             ) : (
                               <div className="w-full h-32 bg-amber-50 flex items-center justify-center text-amber-200 border-b border-amber-100">
-                                <svg className="w-9 h-9" viewBox="0 0 24 24" fill="currentColor">
-                                  <path d="M7 3a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2v2a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-1a3 3 0 0 0-3-3h-1V7a4 4 0 0 0-4-4H7zm0 2h8a2 2 0 0 1 2 2v6h1a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
-                                </svg>
+                                <CoffeeLogo className="w-9 h-9 text-amber-200" />
                               </div>
                             )}
                             <div className="p-3 flex flex-col flex-1">

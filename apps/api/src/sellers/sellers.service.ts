@@ -145,6 +145,9 @@ export class SellersService {
         ...((input as any).tipBit !== undefined && { tipBit: (input as any).tipBit }),
         ...((input as any).tipPaypal !== undefined && { tipPaypal: (input as any).tipPaypal }),
         ...((input as any).milkOptions !== undefined && { milkOptions: (input as any).milkOptions }),
+        ...((input as any).equipmentItems !== undefined && { equipmentItems: (input as any).equipmentItems }),
+        ...((input as any).beanItems !== undefined && { beanItems: (input as any).beanItems }),
+        ...((input as any).drinkItems !== undefined && { drinkItems: (input as any).drinkItems }),
       },
     });
   }
@@ -193,6 +196,9 @@ export class SellersService {
       tipBit: seller.tipBit ?? null,
       tipPaypal: seller.tipPaypal ?? null,
       milkOptions: seller.milkOptions ?? [],
+      equipmentItems: (seller.equipmentItems as any[]) ?? [],
+      beanItems: (seller.beanItems as any[]) ?? [],
+      drinkItems: (seller.drinkItems as any[]) ?? [],
       coverMedia: firstMedia ? { id: firstMedia.id, type: firstMedia.type, url: firstMedia.url, thumbnailUrl: firstMedia.thumbnailUrl } : null,
       avgRating,
       reviewCount,
